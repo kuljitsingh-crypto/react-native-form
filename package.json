@@ -7,8 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "tsc",
-    "publish": "yarn run build && npm publish"
+    "build": "tsc"
   },
   "peerDependencies": {
     "react": "^18.2.0",
