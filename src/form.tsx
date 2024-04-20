@@ -16,7 +16,7 @@ import React, {
 } from "react";
 import { Circle, Path, Svg } from "react-native-svg";
 
-const NUMBER_REGEX = /^([1-9]{1}[0-9]*|[1-9]{1}[0-9]*\.{0,1}[0-9]{0,})$/;
+const NUMBER_REGEX = /^([0-9]*|[0-9]+\.{0,1}[0-9]{0,})$/;
 const MIN_TOP_VALUE = 3;
 const MAX_TOP_VALUE = 13;
 const MAX_FONT_SIZE = 16;
