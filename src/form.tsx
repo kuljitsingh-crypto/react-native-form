@@ -433,6 +433,8 @@ const TextField = (props: TextFieldProps) => {
     ...(propsTextStyle ? [propsTextStyle] : []),
   ];
 
+  console.log(textStyle);
+
   const labelStyle = [
     styles.textLabel,
     ...(hasInput ? [styles.focusedTextLabel] : []),
@@ -873,7 +875,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   textBoxInput: {
-    minHeight: 80,
+    height: 80,
     textAlignVertical: "top",
     // maxHeight: 80,
   },
