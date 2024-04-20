@@ -11,9 +11,10 @@
   },
   "peerDependencies": {
     "react": "^18.2.0",
-    "react-native": "^0.73.7",
-    "react-native-svg": "^15.1.0"
+    "react-native": "^0.73.7"
+    
   },
+  "dependencies": {"react-native-svg": "^15.1.0"},
   "devDependencies": {
     "@types/react": "^18.2.79",
     "@types/react-native": "^0.73.0",
