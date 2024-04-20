@@ -5,9 +5,11 @@
   "main": "lib/index.js",
   "directories": {
     "test": "tests"
+    
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "publish":"yarn run build && npm publish"
   },
   "peerDependencies": {
     "react": "^18.2.0",
