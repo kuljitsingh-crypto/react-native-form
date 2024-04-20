@@ -1,5 +1,5 @@
 {
-  "name": "simple-native-form",
+  "name": "native-form",
   "version": "1.0.0",
   "description": "This is a React Native component library for creating forms with various input fields such as text input, number input, password input, checkbox, and radio button. It provides a convenient way to manage form state, validation, and submission.",
   "main": "lib/index.js",
@@ -35,7 +35,7 @@
     "simple form",
     "simple native form"
   ],
-  "author": "kuljitsingh",
+  "author": "Kuljit Singh <skuljit628@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/kuljitsingh-crypto/react-native-form/issues"
