@@ -8,13 +8,13 @@ This is a React Native component library for creating forms with various input f
 You can install this library using npm or yarn:
 
 ```
-npm install react-native-form
+npm install simple-native-form
 ```
 
 or
 
 ```
-yarn add react-native-form
+yarn add simple-native-form
 ```
 
 ## Usage
@@ -22,7 +22,7 @@ yarn add react-native-form
 Import the necessary components from the library:
 
 ```jsx
-import { ReactNativeForm, Field } from 'react-native-form';
+import { ReactNativeForm, Field } from 'simple-native-form';
 ```
 
 Then, use the `ReactNativeForm` component to wrap your form elements, and the `Field` component to render individual input fields.
@@ -31,7 +31,7 @@ Then, use the `ReactNativeForm` component to wrap your form elements, and the `F
 
 ```jsx
 import React from 'react';
-import { ReactNativeForm, Field } from 'react-native-form';
+import { ReactNativeForm, Field } from 'simple-native-form';
 
 const MyForm = () => {
   const handleSubmit = (values) => {
@@ -72,7 +72,7 @@ const MyForm = () => {
 
 ```jsx
 import React from 'react';
-import { ReactNativeForm, Field } from 'react-native-form';
+import { ReactNativeForm, Field } from 'simple-native-form';
 
 const MyForm = () => {
   const handleSubmit = (values) => {
