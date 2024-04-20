@@ -1,0 +1,25 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+      "target": "ES6",
+      "module": "es2015",
+      "lib": [
+        "ES6"
+      ],
+      "allowJs": true,
+      "jsx": "react-native",
+      "strict": true,
+      "moduleResolution": "bundler",
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "declaration": true,
+      "sourceMap": false,
+      "outDir": "./lib"
+    },
+    "include": ["src"],
+    "exclude": [
+      "node_modules",
+      "**/tests/*"
+    ]
+  }

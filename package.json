@@ -1,0 +1,42 @@
+{
+  "name": "react-native-form",
+  "version": "1.0.0",
+  "description": "This is a React Native component library for creating forms with various input fields such as text input, number input, password input, checkbox, and radio button. It provides a convenient way to manage form state, validation, and submission.",
+  "main": "lib/index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-native": "^0.73.7",
+    "react-native-svg": "^15.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.79",
+    "@types/react-native": "^0.73.0",
+    "react": "^18.2.0",
+    "react-native": "^0.73.7",
+    "react-native-svg": "^15.1.0",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kuljitsingh-crypto/react-native-form.git"
+  },
+  "keywords": [
+    "form",
+    "react-native-form"
+  ],
+  "author": "kuljitsingh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kuljitsingh-crypto/react-native-form/issues"
+  },
+  "homepage": "https://github.com/kuljitsingh-crypto/react-native-form#readme"
+}
