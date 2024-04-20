@@ -46,19 +46,19 @@ const MyForm = () => {
             name="name"
             type="text"
             label="Name"
-            placeholder="Enter your name"
+            
           />
           <Field
             name="email"
             type="text"
             label="Email"
-            placeholder="Enter your email"
+           
           />
           <Field
             name="password"
             type="password"
             label="Password"
-            placeholder="Enter your password"
+           
           />
           <Button title="Submit" onPress={onSubmit} />
         </>
@@ -87,19 +87,19 @@ const MyForm = () => {
             name="name"
             type="text"
             label="Name"
-            placeholder="Enter your name"
+           
           />
           <Field
             name="age"
             type="number"
             label="Age"
-            placeholder="Enter your age"
+            
           />
           <Field
             name="description"
             type="textBox"
             label="Description"
-            placeholder="Enter your description"
+            
           />
           <Field
             name="isSubscribed"
@@ -145,8 +145,7 @@ const MyForm = () => {
 | ---------------------- | -------------------------------------- | ------------------------------------------------------------ |
 | `name`                 | `string`                               | Name of the field                                            |
 | `type`                 | `'text' \| 'textBox' \| 'number' \| 'password' \| 'checkbox' \| 'radio'` | Type of the input field   |
-| `label`                | `string`                               | Label text for the input field                              |
-| `placeholder`          | `string`                               | Placeholder text for the input field                        |
+| `label`                | `string`                               | Label text for the input field                        |
 | `mainContainerStyle`   | `Record<string, unknown>`              | Style object to apply custom styles to the main container   |
 | `contentContainerStyle`| `Record<string, unknown>`              | Style object to apply custom styles to the content container|
 | `textStyle`            | `Record<string, unknown>`              | Style object to apply custom styles to the text input       |
