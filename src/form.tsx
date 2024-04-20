@@ -875,7 +875,7 @@ const styles = StyleSheet.create({
   textBoxInput: {
     minHeight: 80,
     textAlignVertical: "top",
-    maxHeight: 80,
+    // maxHeight: 80,
   },
   textErrMsg: {
     padding: 8,
