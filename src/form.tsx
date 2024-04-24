@@ -93,7 +93,11 @@ type CheckboxFieldProps = {
   contentContainerStyle?: Record<string, unknown>;
   labelStyle?: Record<string, unknown>;
   checkboxStyle?: Record<string, unknown>;
-
+  renderItem?: (props: {
+    isChecked: boolean;
+    label: string;
+    value: string | number;
+  }) => React.JSX.Element;
   onSelect?: (name: string, value: string | number) => void;
 };
 
@@ -110,6 +114,11 @@ type RadioFieldProps = {
   labelStyle?: Record<string, unknown>;
   radioStyle?: Record<string, unknown>;
   onSelect?: (name: string, value: string | number) => void;
+  renderItem?: (props: {
+    isChecked: boolean;
+    label: string;
+    value: string | number;
+  }) => React.JSX.Element;
 };
 
 type FormContextType = {
@@ -298,12 +307,21 @@ const TextField = (props: TextFieldProps) => {
     addFieldError,
   } = formProps;
 
+  if (!label && !placeholder) {
+    throw new Error("Either label or placeholder must be specified.");
+  }
+
+  if (!name) {
+    throw new Error("Name must be specified.");
+  }
+
   const value = (getNestedObjectValue(name, values) || "") as string;
   const isTouched = !!touched[name];
   const isFocused = active === name;
   const hasInput = !!value || isFocused;
   const errMsg = errors[name] as string;
   const showErrorMessage = isTouched && !!errMsg;
+  const isLabelAnimationEnabled = !!(shouldUseScaleAnimation && label);
 
   const scaleAnim = useRef(new Animated.Value(value ? MIN_SCALE : MAX_SCALE));
   const transYAnim = useRef(
@@ -311,7 +329,7 @@ const TextField = (props: TextFieldProps) => {
   );
 
   const scaleOut = () => {
-    if (shouldUseScaleAnimation) {
+    if (isLabelAnimationEnabled) {
       Animated.parallel(
         [
           Animated.timing(scaleAnim.current, {
@@ -331,7 +349,7 @@ const TextField = (props: TextFieldProps) => {
   };
 
   const scaleIn = () => {
-    if (shouldUseScaleAnimation) {
+    if (isLabelAnimationEnabled) {
       Animated.parallel([
         Animated.timing(scaleAnim.current, {
           toValue: MAX_SCALE,
@@ -364,7 +382,7 @@ const TextField = (props: TextFieldProps) => {
     }
 
     updateActiveField(name);
-    if (shouldUseScaleAnimation) scaleOut();
+    if (isLabelAnimationEnabled) scaleOut();
   };
 
   const handleBlur = () => {
@@ -377,7 +395,7 @@ const TextField = (props: TextFieldProps) => {
     if (isFocused && !isTouched) {
       addFieldToTouched(name);
     }
-    if (!value && shouldUseScaleAnimation) {
+    if (!value && isLabelAnimationEnabled) {
       scaleIn();
     }
   };
@@ -424,6 +442,7 @@ const TextField = (props: TextFieldProps) => {
     styles.textContentContainer,
     ...(hasInput ? [styles.focusedTextContainer] : []),
     ...(showErrorMessage ? [styles.errTextContainer] : []),
+    ...(placeholder && !label ? [styles.placeholderTextContainer] : []),
     ...(propsContentContainerStyle ? [propsContentContainerStyle] : []),
   ];
 
@@ -437,7 +456,7 @@ const TextField = (props: TextFieldProps) => {
     styles.textLabel,
     ...(hasInput ? [styles.focusedTextLabel] : []),
     ...(propsLabelStyle ? [propsLabelStyle] : []),
-    ...(shouldUseScaleAnimation
+    ...(isLabelAnimationEnabled
       ? [
           {
             transform: [
@@ -449,6 +468,8 @@ const TextField = (props: TextFieldProps) => {
         ]
       : []),
   ];
+
+  const placeholderMaybe = label ? {} : placeholder ? { placeholder } : {};
 
   useEffect(() => {
     validateUserValue(value);
@@ -464,7 +485,6 @@ const TextField = (props: TextFieldProps) => {
         ) : null}
         <TextInput
           id={name}
-          placeholder={placeholder}
           value={value}
           style={textStyle}
           onChangeText={handleOnChangeText}
@@ -473,6 +493,7 @@ const TextField = (props: TextFieldProps) => {
           editable={!disabled}
           selectTextOnFocus={!disabled}
           {...extraProps}
+          {...placeholderMaybe}
         />
       </View>
       {showErrorMessage ? (
@@ -496,7 +517,11 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     labelStyle: propsLabelStyle,
     checkboxStyle: propsCheckboxStyle,
     onSelect,
+    renderItem,
   } = props;
+  if (!name) {
+    throw new Error("Name must be specified.");
+  }
   const formProps = useContext(ReactNativeFormContext);
   const {
     values,
@@ -568,20 +593,26 @@ const CheckboxField = (props: CheckboxFieldProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
       <View style={contentContainerStyle}>
-        <View style={checkStatusStyle}>
-          {isChecked ? (
-            <CheckSvg
-              width={14}
-              height={14}
-              fill={
-                fillOnCheck
-                  ? formColors.white
-                  : iconFillColor || formColors.gray
-              }
-            />
-          ) : null}
-        </View>
-        <Text style={labelStyle}>{label}</Text>
+        {typeof renderItem === "function" ? (
+          renderItem({ isChecked, value, label })
+        ) : (
+          <React.Fragment>
+            <View style={checkStatusStyle}>
+              {isChecked ? (
+                <CheckSvg
+                  width={14}
+                  height={14}
+                  fill={
+                    fillOnCheck
+                      ? formColors.white
+                      : iconFillColor || formColors.gray
+                  }
+                />
+              ) : null}
+            </View>
+            <Text style={labelStyle}>{label}</Text>
+          </React.Fragment>
+        )}
       </View>
     </Pressable>
   );
@@ -601,6 +632,7 @@ const RadioField = (props: RadioFieldProps) => {
     labelStyle: propsLabelStyle,
     radioStyle: propsCheckboxStyle,
     onSelect,
+    renderItem,
   } = props;
   const formProps = useContext(ReactNativeFormContext);
   const {
@@ -612,6 +644,9 @@ const RadioField = (props: RadioFieldProps) => {
     addFieldToTouched,
     addFieldError,
   } = formProps;
+  if (!name) {
+    throw new Error("Name must be specified.");
+  }
   const sValue = (getNestedObjectValue(name, values) || "") as string;
   const isChecked = sValue === value;
   const isTouched = !!touched[name];
@@ -683,10 +718,16 @@ const RadioField = (props: RadioFieldProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
       <View style={contentContainerStyle}>
-        <View style={checkStatusStyle}>
-          {isChecked ? <View style={radioStyle} /> : null}
-        </View>
-        <Text style={labelStyle}>{label}</Text>
+        {typeof renderItem === "function" ? (
+          renderItem({ isChecked, label, value })
+        ) : (
+          <React.Fragment>
+            <View style={checkStatusStyle}>
+              {isChecked ? <View style={radioStyle} /> : null}
+            </View>
+            <Text style={labelStyle}>{label}</Text>
+          </React.Fragment>
+        )}
       </View>
     </Pressable>
   );
@@ -849,6 +890,10 @@ const styles = StyleSheet.create({
   },
   errTextContainer: {
     borderColor: formColors.failColor,
+  },
+  placeholderTextContainer: {
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   textLabel: {
     position: "absolute",

@@ -1,162 +1,165 @@
 
-# React Native Form
+# Native Form
 
-This is a React Native component library for creating forms with various input fields such as text input, number input, password input, checkbox, and radio button. It provides a convenient way to manage form state, validation, and submission. It also provides a set of utility functions for validating form input values in JavaScript or TypeScript.
+This is a React Native package that provides a simple and customizable form component with various field types such as text, textbox, number, password, checkbox, and radio buttons. It supports features like validation, error handling, and custom styling. It also provides a set of utility functions for validating form input values in JavaScript or TypeScript.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Form Options](#form-options)
+- [Field Options](#field-options)
+  - [Text Fields](#text-fields)
+  - [Radio Fields](#radio-fields)
+  - [Checkbox Fields](#checkbox-fields)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
 
-You can install this library using npm or yarn:
+You can install the package using npm or yarn:
 
-```
+```bash
 npm install native-form
 ```
 
 or
 
-```
+```bash
 yarn add native-form
 ```
 
 ## Usage
 
-Import the necessary components from the library:
+Import the necessary components and use them in your React Native app:
 
 ```jsx
-import { ReactNativeForm, Field } from 'native-form';
-```
-
-Then, use the `ReactNativeForm` component to wrap your form elements, and the `Field` component to render individual input fields.
-
-### Example: Basic Form
-
-```jsx
-import React from 'react';
 import { ReactNativeForm, Field } from 'native-form';
 
 const MyForm = () => {
   const handleSubmit = (values) => {
-    console.log('Form submitted with values:', values);
+    console.log('Form values:', values);
   };
 
   return (
-    <ReactNativeForm onSubmit={handleSubmit}>
-      {({ onSubmit }) => (
-        <>
-          <Field
-            name="name"
-            type="text"
-            label="Name"
-            
-          />
-          <Field
-            name="email"
-            type="text"
-            label="Email"
-           
-          />
-          <Field
-            name="password"
-            type="password"
-            label="Password"
-           
-          />
-          <Button title="Submit" onPress={onSubmit} />
-        </>
-      )}
-    </ReactNativeForm>
+    <ReactNativeForm onSubmit={handleSubmit} onRender={({ onSubmit }) => (
+      <>
+        <Field
+          name="username"
+          type="text"
+          label="Username"
+          placeholder="Enter your username"
+        />
+        <Field
+          name="password"
+          type="password"
+          label="Password"
+          placeholder="Enter your password"
+        />
+        <Field
+          name="gender"
+          type="radio"
+          label="Male"
+          value="male"
+        />
+        <Field
+          name="gender"
+          type="radio"
+          label="Female"
+          value="female"
+        />
+        <Field
+          name="interests"
+          type="checkbox"
+          label="Reading"
+          value="reading"
+        />
+        <Field
+          name="interests"
+          type="checkbox"
+          label="Coding"
+          value="coding"
+        />
+        <Button onPress={onSubmit} title="Submit" />
+      </>
+    )} />
   );
 };
 ```
 
-### Example: Form with Different Field Types
+In this example, we create a form with various field types, including text, password, radio buttons, and checkboxes. The `ReactNativeForm` component provides the form context and handles state management, while the `Field` component renders the individual fields based on the provided props.
 
-```jsx
-import React from 'react';
-import { ReactNativeForm, Field } from 'native-form';
+When the form is submitted, the `handleSubmit` function will be called with the form values as an argument.
 
-const MyForm = () => {
-  const handleSubmit = (values) => {
-    console.log('Form submitted with values:', values);
-  };
+## Form Options
 
-  return (
-    <ReactNativeForm onSubmit={handleSubmit}>
-      {({ onSubmit }) => (
-        <>
-          <Field
-            name="name"
-            type="text"
-            label="Name"
-           
-          />
-          <Field
-            name="age"
-            type="number"
-            label="Age"
-            
-          />
-          <Field
-            name="description"
-            type="textBox"
-            label="Description"
-            
-          />
-          <Field
-            name="isSubscribed"
-            type="checkbox"
-            label="Subscribe to newsletter"
-            value="subscribed"
-          />
-          <Field
-            name="gender"
-            type="radio"
-            label="Male"
-            value="male"
-          />
-          <Field
-            name="gender"
-            type="radio"
-            label="Female"
-            value="female"
-          />
-          <Button title="Submit" onPress={onSubmit} />
-        </>
-      )}
-    </ReactNativeForm>
-  );
-};
-```
+The `ReactNativeForm` component accepts the following props:
 
-## Props
+| Prop | Type | Description |
+| --- | --- | --- |
+| `initialValues` | `Record<string, unknown>` | Optional. The initial values for the form fields. |
+| `formStyle` | `Record<string, unknown>` | Optional. Additional styles for the form container. |
+| `submitting` | `boolean` | Optional. Whether the form is currently submitting. |
+| `onSubmit` | `(value: Record<string, unknown>) => void` | Required. A callback function that is called when the form is submitted. |
+| `onRender` | `(arg: { invalid: boolean, submitting: boolean, active: string \| undefined, values: Record<string, unknown>, initialValues: Record<string, unknown>, touched: Record<string, boolean>, errors: Record<string, unknown>, changeFormValues: (name: string, type: string, value: string \| undefined) => void, onSubmit: (event: GestureResponderEvent) => void }) => React.JSX.Element` | Required. A render prop that receives form state and helper functions as arguments and returns the form content. |
 
-### `ReactNativeForm`
+## Field Options
 
-| Prop           | Type                                     | Description                                                                     |
-| -------------- | ---------------------------------------- | ------------------------------------------------------------------------------- |
-| `initalValues` | `Record<string, unknown>`                | Initial values for the form fields                                             |
-| `formStyle`    | `Record<string, unknown>`                | Style object to apply custom styles to the form container                      |
-| `submitting`   | `boolean`                                | Flag to indicate if the form is currently being submitted                      |
-| `onSubmit`     | `(value: Record<string, unknown>) => void` | Callback function called when the form is submitted                            |
-| `onRender`     | `(args: RenderProps) => React.JSX.Element` | Render prop function to render the form elements and access form state/helpers |
+### Text Fields
 
-### `Field`
+| Prop | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Required. The unique identifier for the field. |
+| `type` | `'text'`, `'textBox'`, `'number'`, `'password'` | Required. The type of the text field. |
+| `label` | `string` | Optional. The label to be displayed for the field. |
+| `placeholder` | `string` | Optional. The placeholder text for the field. |
+| `mainContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the main container view. |
+| `contentContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the content container view. |
+| `textStyle` | `Record<string, unknown>` | Optional. Additional styles for the text input. |
+| `labelStyle` | `Record<string, unknown>` | Optional. Additional styles for the label. |
+| `shouldUseScaleAnimation` | `boolean` | Optional. Default: `true`. Whether to use a scale animation for the label when focused. |
+| `disabled` | `boolean` | Optional. Default: `false`. Whether the field should be disabled. |
+| `formatValue` | `<T>(value: T) => T` | Optional. A function to format the value before setting it. |
+| `onChange` | `(name: string, value: string \| undefined) => void` | Optional. A callback function that is called when the value changes. |
+| `onFocus` | `(name: string) => void` | Optional. A callback function that is called when the field gets focused. |
+| `onBlur` | `(name: string) => void` | Optional. A callback function that is called when the field loses focus. |
+| `validate` | `(value: string \| undefined) => string \| undefined` | Optional. A function to validate the field value and return an error message if invalid. |
 
-| Prop                   | Type                                   | Description                                                  |
-| ---------------------- | -------------------------------------- | ------------------------------------------------------------ |
-| `name`                 | `string`                               | Name of the field                                            |
-| `type`                 | `'text' \| 'textBox' \| 'number' \| 'password' \| 'checkbox' \| 'radio'` | Type of the input field   |
-| `label`                | `string`                               | Label text for the input field                        |
-| `mainContainerStyle`   | `Record<string, unknown>`              | Style object to apply custom styles to the main container   |
-| `contentContainerStyle`| `Record<string, unknown>`              | Style object to apply custom styles to the content container|
-| `textStyle`            | `Record<string, unknown>`              | Style object to apply custom styles to the text input       |
-| `labelStyle`           | `Record<string, unknown>`              | Style object to apply custom styles to the label            |
-| `shouldUseScaleAnimation` | `boolean`                           | Flag to enable/disable scale animation for text input labels |
-| `disabled`             | `boolean`                              | Flag to disable the input field                             |
-| `formatValue`          | `<T>(value: T) => T`                   | Function to format the value of the input field             |
-| `onChange`             | `(name: string, value: string \| undefined) => void` | Callback function called when the input value changes       |
-| `onFocus`              | `(name: string) => void`               | Callback function called when the input field receives focus|
-| `onBlur`               | `(name: string) => void`               | Callback function called when the input field loses focus   |
-| `validate`             | `(value: string \| undefined) => string \| undefined` | Validation function for the input field      |
+### Radio Fields
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Required. The unique identifier for the field. |
+| `type` | `'radio'` | Required. The type of the field. |
+| `label` | `string` | Required. The label to be displayed for the radio option. |
+| `value` | `string` \| `number` | Required. The value of the radio option. |
+| `required` | `boolean` | Optional. Whether the field is required. |
+| `iconFillColor` | `string` | Optional. The color to be used for the radio icon. |
+| `fillOnCheck` | `boolean` | Optional. Whether to fill the radio icon when checked. |
+| `mainContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the main container view. |
+| `contentContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the content container view. |
+| `labelStyle` | `Record<string, unknown>` | Optional. Additional styles for the label. |
+| `radioStyle` | `Record<string, unknown>` | Optional. Additional styles for the radio icon. |
+| `onSelect` | `(name: string, value: string \| number) => void` | Optional. A callback function that is called when a radio option is selected. |
+| `renderItem` | `(props: { isChecked: boolean, label: string, value: string \| number }) => JSX.Element` | Optional. A render prop to customize the rendering of the radio option. |
+
+### Checkbox Fields
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Required. The unique identifier for the field. |
+| `type` | `'checkbox'` | Required. The type of the field. |
+| `label` | `string` | Required. The label to be displayed for the checkbox option. |
+| `value` | `string` \| `number` | Required. The value of the checkbox option. |
+| `required` | `boolean` | Optional. Whether the field is required. |
+| `fillOnCheck` | `boolean` | Optional. Whether to fill the checkbox icon when checked. |
+| `iconFillColor` | `string` | Optional. The color to be used for the checkbox icon. |
+| `mainContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the main container view. |
+| `contentContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the content container view. |
+| `labelStyle` | `Record<string, unknown>` | Optional. Additional styles for the label. |
+| `checkboxStyle` | `Record<string, unknown>` | Optional. Additional styles for the checkbox icon. |
+| `onSelect` | `(name: string, value: string \| number) => void` | Optional. A callback function that is called when a checkbox |
+`renderItem` | `(props: { isChecked: boolean, label: string, value: string \| number }) => JSX.Element` | Optional. A render prop to customize the rendering of the checkbox option. |
 
 
 ## Validation Utility Functions
