@@ -6,15 +6,18 @@ import {
   Text,
   TextInput,
   View,
-} from "react-native";
+} from 'react-native';
 import React, {
   createContext,
   useContext,
   useEffect,
   useRef,
   useState,
-} from "react";
-import { Circle, Path, Svg } from "react-native-svg";
+} from 'react';
+import {Circle, Path, Svg} from 'react-native-svg';
+import {FormContextProvider, useFormContext} from './formContext';
+import {formColors} from './formColors';
+import TogglePassword from './component/TogglePassword';
 
 const NUMBER_REGEX = /^([0-9]*|[0-9]+\.{0,1}[0-9]{0,})$/;
 const MIN_TOP_VALUE = 3;
@@ -25,26 +28,18 @@ const MAX_SCALE = 1;
 const MIN_SCALE = 0.75;
 const MAX_LEFT_VALUE = 14;
 
-const formColors = {
-  white: "#fff",
-  black: "#000",
-  gray: "gray",
-  failColor: "#ff0000",
-  disabledColor: "#e7e7e7",
-  matterColor: "#b2b2b2",
-};
-
 const textFieldTypes = {
-  text: "text",
-  textBox: "textBox",
-  number: "number",
-  password: "password",
+  text: 'text',
+  textBox: 'textBox',
+  number: 'number',
+  password: 'password',
 } as const;
 
 type ReactNativeFormTypes = {
   initalValues?: Record<string, unknown>;
   formStyle?: Record<string, unknown>;
   submitting?: boolean;
+  primaryColor?: string;
   onSubmit: (value: Record<string, unknown>) => void;
   onRender: (arg: {
     invalid: boolean;
@@ -57,7 +52,7 @@ type ReactNativeFormTypes = {
     changeFormValues: (
       name: string,
       type: string,
-      value: string | undefined
+      value: string | undefined,
     ) => void;
     onSubmit: (event: GestureResponderEvent) => void;
   }) => React.JSX.Element;
@@ -74,16 +69,19 @@ type TextFieldProps = {
   labelStyle?: Record<string, unknown>;
   shouldUseScaleAnimation?: boolean;
   disabled?: boolean;
+  enableTogglePasswordOption?: boolean;
+  togglePasswordType?: 'classic' | 'modern';
+  fillOnCheck?: boolean;
   formatValue?: <T>(value: T) => T;
-  onChange?: (name: string, value: string | undefined) => void;
+  onChange?: (name: string, value: string | number | undefined) => void;
   onFocus?: (name: string) => void;
   onBlur?: (name: string) => void;
-  validate?: (value: string | undefined) => string | undefined;
+  validate?: (value: string | number | undefined) => string | undefined;
 };
 
 type CheckboxFieldProps = {
   name: string;
-  type: "checkbox";
+  type: 'checkbox';
   label: string;
   value: string | number;
   required?: boolean;
@@ -103,7 +101,7 @@ type CheckboxFieldProps = {
 
 type RadioFieldProps = {
   name: string;
-  type: "radio";
+  type: 'radio';
   label: string;
   value: string | number;
   required?: boolean;
@@ -121,25 +119,11 @@ type RadioFieldProps = {
   }) => React.JSX.Element;
 };
 
-type FormContextType = {
-  values: Record<string, unknown>;
-  touched: Record<string, unknown>;
-  active: string | undefined;
-  errors: Record<string, unknown>;
-  changeFormValues: (
-    name: string,
-    type: string,
-    value: string | undefined
-  ) => void;
-  addFieldToTouched: (name: string) => void;
-  updateActiveField: (name: string, isFocused?: boolean) => void;
-  addFieldError: (name: string, err: string | undefined | null) => void;
-};
-
-const ReactNativeFormContext = createContext<FormContextType>(undefined as any);
-
-const setNestedObjectValue = (name: string, value: string | undefined) => {
-  const nameArr = name.replace(/\.{1,}$/, "").split(".");
+const setNestedObjectValue = (
+  name: string,
+  value: string | number | undefined,
+) => {
+  const nameArr = name.replace(/\.{1,}$/, '').split('.');
   const arrObject: Record<string, unknown> = {};
   let obj = arrObject;
   const nameArrLength = nameArr.length;
@@ -158,10 +142,10 @@ const setNestedObjectValue = (name: string, value: string | undefined) => {
 const pushValueToNestedObject = (
   name: string,
   obj: Record<string, unknown>,
-  value: string,
-  shouldRemoveIfExists?: boolean
+  value: string | number,
+  shouldRemoveIfExists?: boolean,
 ) => {
-  const nameArr = name.replace(/\.{1,}$/, "").split(".");
+  const nameArr = name.replace(/\.{1,}$/, '').split('.');
   const arrObject: Record<string, unknown> = {};
   let current = arrObject,
     objRef = obj,
@@ -175,11 +159,11 @@ const pushValueToNestedObject = (
     objRef = (objRef[temp] || {}) as Record<string, unknown>;
   }
   const lastKeyName = nameArr[lastIndx];
-  const preValue = (objRef[lastKeyName] || []) as string[];
+  const preValue = (objRef[lastKeyName] || []) as (string | number)[];
   const isValueExist = preValue.includes(value);
   const newValue = isValueExist
     ? shouldRemoveIfExists
-      ? preValue.filter((v) => v !== value)
+      ? preValue.filter(v => v !== value)
       : [...preValue]
     : [...preValue, value];
   current[lastKeyName] = newValue;
@@ -187,7 +171,7 @@ const pushValueToNestedObject = (
 };
 
 const getNestedObjectValue = (name: string, obj: Record<string, unknown>) => {
-  const nameArr = name.replace(/\.{1,}$/, "").split(".");
+  const nameArr = name.replace(/\.{1,}$/, '').split('.');
   let value = obj;
   for (let name of nameArr) {
     if (!(name in value)) {
@@ -198,81 +182,13 @@ const getNestedObjectValue = (name: string, obj: Record<string, unknown>) => {
   return value as unknown;
 };
 
-const CheckSvg = (props: { width: number; height: number; fill: string }) => {
-  const { width = 24, height = 24, fill = "#000" } = props;
+const CheckSvg = (props: {width: number; height: number; fill: string}) => {
+  const {width = 24, height = 24, fill = '#000'} = props;
   return (
-    <Svg viewBox='0 0 16 16' width={width} height={height}>
+    <Svg viewBox="0 0 16 16" width={width} height={height}>
       <Path
-        d='M0,6.51045l5.47909,5.48955l10.5209,-10.5105l-1.51045,-1.48955l-9.01045,9l-3.98955,-3.98955Z'
+        d="M0,6.51045l5.47909,5.48955l10.5209,-10.5105l-1.51045,-1.48955l-9.01045,9l-3.98955,-3.98955Z"
         fill={fill}></Path>
-    </Svg>
-  );
-};
-
-const HidePassword = (props: {
-  width: number;
-  height: number;
-  stroke: string;
-}) => {
-  const { width = 24, height = 24, stroke = "#000" } = props;
-  return (
-    <Svg viewBox='0 0 24 24' width={width} height={height} fill={"none"}>
-      <Path
-        d='M2 2L22 22'
-        stroke={stroke}
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-      <Path
-        d='M6.71277 6.7226C3.66479 8.79527 2 12 2 12C2 12 5.63636 19 12 19C14.0503 19 15.8174 18.2734 17.2711 17.2884M11 5.05822C11.3254 5.02013 11.6588 5 12 5C18.3636 5 22 12 22 12C22 12 21.3082 13.3317 20 14.8335'
-        stroke={stroke}
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-      <Path
-        d='M14 14.2362C13.4692 14.7112 12.7684 15.0001 12 15.0001C10.3431 15.0001 9 13.657 9 12.0001C9 11.1764 9.33193 10.4303 9.86932 9.88818'
-        stroke={stroke}
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </Svg>
-  );
-};
-
-const ShowPassword = (props: {
-  width: number;
-  height: number;
-  stroke: string;
-}) => {
-  const { width = 24, height = 24, stroke = "#000" } = props;
-  return (
-    <Svg viewBox='0 0 24 24' width={width} height={height} fill={"none"}>
-      <Path
-        d='M1 12C1 12 5 4 12 4C19 4 23 12 23 12'
-        stroke={stroke}
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-      <Path
-        d='M1 12C1 12 5 20 12 20C19 20 23 12 23 12'
-        stroke={stroke}
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-      <Circle
-        cx='12'
-        cy='12'
-        r='3'
-        stroke={stroke}
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
     </Svg>
   );
 };
@@ -287,6 +203,9 @@ const TextField = (props: TextFieldProps) => {
     contentContainerStyle: propsContentContainerStyle,
     textStyle: propsTextStyle,
     labelStyle: propsLabelStyle,
+    togglePasswordType,
+    enableTogglePasswordOption,
+    fillOnCheck,
     shouldUseScaleAnimation = true,
     disabled = false,
     onChange,
@@ -295,12 +214,13 @@ const TextField = (props: TextFieldProps) => {
     validate,
     formatValue,
   } = props;
-  const formProps = useContext(ReactNativeFormContext);
+  const formProps = useFormContext();
   const {
     values,
     touched,
     active,
     errors,
+    primaryColor,
     changeFormValues,
     addFieldToTouched,
     updateActiveField,
@@ -308,24 +228,30 @@ const TextField = (props: TextFieldProps) => {
   } = formProps;
 
   if (!label && !placeholder) {
-    throw new Error("Either label or placeholder must be specified.");
+    throw new Error('Either label or placeholder must be specified.');
   }
 
   if (!name) {
-    throw new Error("Name must be specified.");
+    throw new Error('Name must be specified.');
   }
 
-  const value = (getNestedObjectValue(name, values) || "") as string;
+  const value = (getNestedObjectValue(name, values) || '') as string;
   const isTouched = !!touched[name];
   const isFocused = active === name;
   const hasInput = !!value || isFocused;
   const errMsg = errors[name] as string;
   const showErrorMessage = isTouched && !!errMsg;
   const isLabelAnimationEnabled = !!(shouldUseScaleAnimation && label);
+  const validTogglePasswordType =
+    togglePasswordType === 'modern' ? 'modern' : 'classic';
+  const shouldShowPwdToggleOption = !!(
+    enableTogglePasswordOption && type === 'password'
+  );
 
+  const [showPwd, setShowPwd] = useState(false);
   const scaleAnim = useRef(new Animated.Value(value ? MIN_SCALE : MAX_SCALE));
   const transYAnim = useRef(
-    new Animated.Value(value ? MIN_TOP_VALUE : MAX_TOP_VALUE)
+    new Animated.Value(value ? MIN_TOP_VALUE : MAX_TOP_VALUE),
   );
 
   const scaleOut = () => {
@@ -343,7 +269,7 @@ const TextField = (props: TextFieldProps) => {
             useNativeDriver: true,
           }),
         ],
-        { stopTogether: true }
+        {stopTogether: true},
       ).start();
     }
   };
@@ -366,18 +292,18 @@ const TextField = (props: TextFieldProps) => {
   };
 
   const numberInputFormater = (value: string) => {
-    if (type === "number") {
+    if (type === 'number') {
       if (NUMBER_REGEX.test(value)) {
         return value;
       }
-      return "";
+      return '';
     }
     return value;
   };
 
   const handleFocus = () => {
     if (disabled) return;
-    if (typeof propsOnFocus === "function") {
+    if (typeof propsOnFocus === 'function') {
       propsOnFocus(name);
     }
 
@@ -388,7 +314,7 @@ const TextField = (props: TextFieldProps) => {
   const handleBlur = () => {
     if (disabled) return;
 
-    if (typeof propsOnBlur === "function") {
+    if (typeof propsOnBlur === 'function') {
       propsOnBlur(name);
     }
     updateActiveField(name, false);
@@ -400,8 +326,8 @@ const TextField = (props: TextFieldProps) => {
     }
   };
 
-  const validateUserValue = (value?: string) => {
-    if (typeof validate === "function") {
+  const validateUserValue = (value?: string | number) => {
+    if (typeof validate === 'function') {
       const err = validate(value);
       addFieldError(name, err);
     }
@@ -410,26 +336,33 @@ const TextField = (props: TextFieldProps) => {
   const handleOnChangeText = (value: string) => {
     if (disabled) return;
 
-    let finalValue = numberInputFormater(value);
-    if (typeof formatValue === "function") {
+    let finalValue =
+      type === 'number'
+        ? parseFloat(numberInputFormater(value))
+        : numberInputFormater(value);
+    if (typeof formatValue === 'function') {
       finalValue = formatValue(finalValue);
     }
     if (value && !finalValue) return;
-    if (typeof onChange === "function") {
+    if (typeof onChange === 'function') {
       onChange(name, finalValue);
     }
     changeFormValues(name, type, finalValue);
     validateUserValue(finalValue);
   };
 
+  const togglePassword = () => {
+    setShowPwd(showPwd => !showPwd);
+  };
+
   const extraProps = {
-    ...(type === "textBox" ? { multiline: true } : {}),
-    ...(type === "number"
-      ? ({ keyboardType: "numeric" } as const)
-      : ({ keyboardType: "default" } as const)),
-    ...(type === "password"
-      ? { secureTextEntry: true }
-      : { secureTextEntry: false }),
+    ...(type === 'textBox' ? {multiline: true} : {}),
+    ...(type === 'number'
+      ? ({keyboardType: 'numeric'} as const)
+      : ({keyboardType: 'default'} as const)),
+    ...(type === 'password'
+      ? {secureTextEntry: shouldShowPwdToggleOption ? !showPwd : true}
+      : {secureTextEntry: false}),
   };
 
   const mainContainerStyle = [
@@ -448,7 +381,10 @@ const TextField = (props: TextFieldProps) => {
 
   const textStyle = [
     styles.textInput,
-    ...(type === "textBox" ? [styles.textBoxInput] : []),
+    ...(type === 'textBox' ? [styles.textBoxInput] : []),
+    ...(shouldShowPwdToggleOption && validTogglePasswordType === 'modern'
+      ? [styles.mordenPasswordInput]
+      : []),
     ...(propsTextStyle ? [propsTextStyle] : []),
   ];
 
@@ -460,16 +396,16 @@ const TextField = (props: TextFieldProps) => {
       ? [
           {
             transform: [
-              { scale: scaleAnim.current },
-              { translateX: MAX_LEFT_VALUE },
-              { translateY: transYAnim.current },
+              {scale: scaleAnim.current},
+              {translateX: MAX_LEFT_VALUE},
+              {translateY: transYAnim.current},
             ],
           },
         ]
       : []),
   ];
 
-  const placeholderMaybe = label ? {} : placeholder ? { placeholder } : {};
+  const placeholderMaybe = label ? {} : placeholder ? {placeholder} : {};
 
   useEffect(() => {
     validateUserValue(value);
@@ -495,9 +431,31 @@ const TextField = (props: TextFieldProps) => {
           {...extraProps}
           {...placeholderMaybe}
         />
+        {shouldShowPwdToggleOption && validTogglePasswordType === 'modern' ? (
+          <TogglePassword
+            showTogglePasswordOption={shouldShowPwdToggleOption}
+            togglePasswordType={validTogglePasswordType}
+            primaryColor={primaryColor}
+            fillOnCheck={fillOnCheck}
+            togglePassword={togglePassword}
+            showPwd={showPwd}
+            mainContainerStyle={label ? {transform: [{translateY: -14}]} : {}}
+          />
+        ) : null}
       </View>
       {showErrorMessage ? (
         <Text style={styles.textErrMsg}>{errMsg}</Text>
+      ) : null}
+      {shouldShowPwdToggleOption && validTogglePasswordType === 'classic' ? (
+        <TogglePassword
+          showTogglePasswordOption={shouldShowPwdToggleOption}
+          togglePasswordType={validTogglePasswordType}
+          primaryColor={primaryColor}
+          fillOnCheck={fillOnCheck}
+          togglePassword={togglePassword}
+          showPwd={showPwd}
+          mainContainerStyle={showErrorMessage ? {marginTop: 0} : {}}
+        />
       ) : null}
     </View>
   );
@@ -520,13 +478,14 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     renderItem,
   } = props;
   if (!name) {
-    throw new Error("Name must be specified.");
+    throw new Error('Name must be specified.');
   }
-  const formProps = useContext(ReactNativeFormContext);
+  const formProps = useFormContext();
   const {
     values,
     active,
     touched,
+    primaryColor = formColors.gray,
     changeFormValues,
     updateActiveField,
     addFieldToTouched,
@@ -555,14 +514,17 @@ const CheckboxField = (props: CheckboxFieldProps) => {
   const checkStatusStyle = [
     styles.checkStatus,
     ...(fillOnCheck && isChecked ? [styles.filledCheckedStatus] : []),
+    ...(fillOnCheck && isChecked
+      ? [{backgroundColor: primaryColor, borderColor: primaryColor}]
+      : [{borderColor: primaryColor}]),
     ...(propsCheckboxStyle ? [propsCheckboxStyle] : []),
   ];
 
   const handleOnPress = () => {
-    if (typeof onSelect === "function") {
+    if (typeof onSelect === 'function') {
       onSelect(name, value);
     }
-    if (typeof value === "number") {
+    if (typeof value === 'number') {
       changeFormValues(name, type, value.toString());
     } else {
       changeFormValues(name, type, value);
@@ -593,8 +555,8 @@ const CheckboxField = (props: CheckboxFieldProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
       <View style={contentContainerStyle}>
-        {typeof renderItem === "function" ? (
-          renderItem({ isChecked, value, label })
+        {typeof renderItem === 'function' ? (
+          renderItem({isChecked, value, label})
         ) : (
           <React.Fragment>
             <View style={checkStatusStyle}>
@@ -605,7 +567,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
                   fill={
                     fillOnCheck
                       ? formColors.white
-                      : iconFillColor || formColors.gray
+                      : iconFillColor || primaryColor
                   }
                 />
               ) : null}
@@ -634,20 +596,21 @@ const RadioField = (props: RadioFieldProps) => {
     onSelect,
     renderItem,
   } = props;
-  const formProps = useContext(ReactNativeFormContext);
+  const formProps = useFormContext();
   const {
     values,
     active,
     touched,
+    primaryColor = formColors.gray,
     changeFormValues,
     updateActiveField,
     addFieldToTouched,
     addFieldError,
   } = formProps;
   if (!name) {
-    throw new Error("Name must be specified.");
+    throw new Error('Name must be specified.');
   }
-  const sValue = (getNestedObjectValue(name, values) || "") as string;
+  const sValue = (getNestedObjectValue(name, values) || '') as string;
   const isChecked = sValue === value;
   const isTouched = !!touched[name];
   const isFocused = active === name;
@@ -670,6 +633,9 @@ const RadioField = (props: RadioFieldProps) => {
   const checkStatusStyle = [
     styles.radioStatus,
     ...(fillOnCheck && isChecked ? [styles.filledRadioStatus] : []),
+    ...(fillOnCheck && isChecked
+      ? [{backgroundColor: primaryColor, borderColor: primaryColor}]
+      : [{borderColor: primaryColor}]),
     ...(propsCheckboxStyle ? [propsCheckboxStyle] : []),
   ];
 
@@ -679,15 +645,15 @@ const RadioField = (props: RadioFieldProps) => {
     {
       backgroundColor: fillOnCheck
         ? formColors.white
-        : iconFillColor || formColors.gray,
+        : iconFillColor || primaryColor,
     },
   ];
 
   const handleOnPress = () => {
-    if (typeof onSelect === "function") {
+    if (typeof onSelect === 'function') {
       onSelect(name, value);
     }
-    if (typeof value === "number") {
+    if (typeof value === 'number') {
       changeFormValues(name, type, value.toString());
     } else {
       changeFormValues(name, type, value);
@@ -718,8 +684,8 @@ const RadioField = (props: RadioFieldProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
       <View style={contentContainerStyle}>
-        {typeof renderItem === "function" ? (
-          renderItem({ isChecked, label, value })
+        {typeof renderItem === 'function' ? (
+          renderItem({isChecked, label, value})
         ) : (
           <React.Fragment>
             <View style={checkStatusStyle}>
@@ -734,18 +700,18 @@ const RadioField = (props: RadioFieldProps) => {
 };
 
 export const Field = (
-  props: TextFieldProps | CheckboxFieldProps | RadioFieldProps
+  props: TextFieldProps | CheckboxFieldProps | RadioFieldProps,
 ) => {
-  const { type } = props;
+  const {type} = props;
   switch (type) {
-    case "text":
-    case "textBox":
-    case "number":
-    case "password":
+    case 'text':
+    case 'textBox':
+    case 'number':
+    case 'password':
       return <TextField {...props} />;
-    case "checkbox":
+    case 'checkbox':
       return <CheckboxField {...props} />;
-    case "radio":
+    case 'radio':
       return <RadioField {...props} />;
     default:
       return null;
@@ -755,10 +721,10 @@ export const Field = (
 const initalizeFormValues = (initialValues?: Record<string, unknown>) => {
   if (
     initialValues &&
-    typeof initialValues === "object" &&
+    typeof initialValues === 'object' &&
     initialValues.constructor === Object
   ) {
-    return { ...initialValues };
+    return {...initialValues};
   }
   return {};
 };
@@ -770,6 +736,7 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
     formStyle: propsFormStyle,
     submitting,
     onRender,
+    primaryColor = formColors.gray,
     ...rest
   } = props;
   const initalFormValues = initalizeFormValues(initalValues);
@@ -783,44 +750,44 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
   const changeFormValues = (
     name: string,
     type: string,
-    value: string | undefined
+    value: string | number | undefined,
   ) => {
-    if (type === "checkbox") {
+    if (type === 'checkbox') {
       if (value) {
-        setFormValues((formValues) => {
+        setFormValues(formValues => {
           const arrayValue = pushValueToNestedObject(
             name,
             formValues,
             value,
-            true
+            true,
           );
-          return { ...formValues, ...arrayValue };
+          return {...formValues, ...arrayValue};
         });
       }
     } else {
       const finalValue = setNestedObjectValue(name, value);
-      setFormValues((formValues) => ({ ...formValues, ...finalValue }));
+      setFormValues(formValues => ({...formValues, ...finalValue}));
     }
   };
 
   const addFieldToTouched = (name: string) => {
-    if (name && typeof name === "string") {
-      setTouched((touched) => ({ ...touched, [name]: true }));
+    if (name && typeof name === 'string') {
+      setTouched(touched => ({...touched, [name]: true}));
     }
   };
 
   const updateActiveField = (name: string, isFocused = true) => {
-    if (name && typeof name === "string") {
-      setActive((active) =>
-        isFocused ? name : active === name ? undefined : active
+    if (name && typeof name === 'string') {
+      setActive(active =>
+        isFocused ? name : active === name ? undefined : active,
       );
     }
   };
 
   const addFieldError = (name: string, err: string | undefined | null) => {
-    if (name && typeof name === "string") {
-      setErrors((errors) => {
-        const newErrors = { ...errors };
+    if (name && typeof name === 'string') {
+      setErrors(errors => {
+        const newErrors = {...errors};
         delete newErrors[name];
         if (err) {
           newErrors[name] = err;
@@ -832,7 +799,7 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
 
   const handleFormSubmit = (event: GestureResponderEvent) => {
     if (submitting) return;
-    if (typeof onSubmit === "function") {
+    if (typeof onSubmit === 'function') {
       onSubmit(formValues);
     }
   };
@@ -841,18 +808,19 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
 
   return (
     <View style={formStyle}>
-      <ReactNativeFormContext.Provider
+      <FormContextProvider
         value={{
           values: formValues,
           touched,
           active,
           errors,
+          primaryColor,
           changeFormValues,
           addFieldToTouched,
           updateActiveField,
           addFieldError,
         }}>
-        {typeof onRender === "function"
+        {typeof onRender === 'function'
           ? onRender({
               values: formValues,
               invalid,
@@ -866,14 +834,14 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
               ...rest,
             })
           : null}
-      </ReactNativeFormContext.Provider>
+      </FormContextProvider>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   form: {},
-  textMainContainer: { paddingBottom: 12, paddingTop: 12, overflow: "hidden" },
+  textMainContainer: {paddingBottom: 12, paddingTop: 12, overflow: 'hidden'},
   disabledTextMainContainer: {
     opacity: 0.5,
   },
@@ -896,18 +864,18 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   textLabel: {
-    position: "absolute",
+    position: 'absolute',
     fontSize: MAX_FONT_SIZE,
     lineHeight: 24,
     top: 0,
     left: 0,
     color: formColors.gray,
-    transformOrigin: "left top",
-    overflow: "hidden",
-    width: "100%",
+    transformOrigin: 'left top',
+    overflow: 'hidden',
+    width: '100%',
   },
   focusedTextLabel: {
-    width: "133%",
+    width: '133%',
   },
   errTextLabel: {
     color: formColors.failColor,
@@ -919,8 +887,14 @@ const styles = StyleSheet.create({
   },
   textBoxInput: {
     height: 80,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
     maxHeight: 80,
+  },
+  passwordInput: {
+    fontSize: 24,
+  },
+  mordenPasswordInput: {
+    marginRight: 30,
   },
   textErrMsg: {
     padding: 8,
@@ -938,17 +912,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   checkboxContentContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   checkboxLabel: {
-    color: formColors.gray,
+    color: formColors.black,
   },
   checkStatus: {
     borderWidth: 2,
     borderColor: formColors.gray,
     padding: 4,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 20,
     height: 20,
     borderRadius: 2,
@@ -966,17 +940,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   radioContentContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   radioLabel: {
-    color: formColors.gray,
+    color: formColors.black,
   },
   radioStatus: {
     borderWidth: 2,
     borderColor: formColors.gray,
     padding: 4,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 20,
     height: 20,
     borderRadius: 50,

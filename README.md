@@ -12,6 +12,7 @@ This is a React Native package that provides a simple and customizable form comp
   - [Text Fields](#text-fields)
   - [Radio Fields](#radio-fields)
   - [Checkbox Fields](#checkbox-fields)
+- [Validation Utility Functions](#validation-utility-functions)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -55,6 +56,9 @@ const MyForm = () => {
           type="password"
           label="Password"
           placeholder="Enter your password"
+          enableTogglePasswordOption={true}
+          togglePasswordType="classic"
+          fillOnCheck={true}
         />
         <Field
           name="gender"
@@ -119,6 +123,9 @@ The `ReactNativeForm` component accepts the following props:
 | `labelStyle` | `Record<string, unknown>` | Optional. Additional styles for the label. |
 | `shouldUseScaleAnimation` | `boolean` | Optional. Default: `true`. Whether to use a scale animation for the label when focused. |
 | `disabled` | `boolean` | Optional. Default: `false`. Whether the field should be disabled. |
+|`enableTogglePasswordOption` | `boolean` | Optional. Default `false`. A boolean indicating whether to show a toggle password option for password fields.|
+|`togglePasswordType` | `string` | Optional. A string representing the type of toggle password option (`classic` or `modern`).|
+| `fillOnCheck` | `boolean` | Optional. A boolean indicating whether to fill the checkbox on check. Applicable only when `togglePasswordType` = `classic`.
 | `formatValue` | `<T>(value: T) => T` | Optional. A function to format the value before setting it. |
 | `onChange` | `(name: string, value: string \| undefined) => void` | Optional. A callback function that is called when the value changes. |
 | `onFocus` | `(name: string) => void` | Optional. A callback function that is called when the field gets focused. |

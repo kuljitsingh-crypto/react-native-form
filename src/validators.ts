@@ -1,25 +1,23 @@
 const isNonEmptyString = (val: string) => {
-  return typeof val === "string" && val.trim().length > 0;
+  return typeof val === 'string' && val.trim().length > 0;
 };
 
 // Form expects and undefined value for a successful validation
 const VALID = undefined;
 
 export const required = (message: string) => (value: any) => {
-  if (typeof value === "undefined" || value === null) {
+  if (typeof value === 'undefined' || value === null) {
     // undefined or null values are invalid
     return message;
   }
-  if (typeof value === "string") {
-    // string must be nonempty when trimmed
-    return isNonEmptyString(value) ? VALID : message;
-  }
-  return VALID;
+  const strValue = value.toString();
+  // string must be nonempty when trimmed
+  return isNonEmptyString(strValue) ? VALID : message;
 };
 
 export const minLength =
   (message: string, minimumLength: number) => (value: any) => {
-    const hasLength = value && typeof value.length === "number";
+    const hasLength = value && typeof value.length === 'number';
     return hasLength && value.length >= minimumLength ? VALID : message;
   };
 
@@ -28,7 +26,7 @@ export const maxLength =
     if (!value) {
       return VALID;
     }
-    const hasLength = value && typeof value.length === "number";
+    const hasLength = value && typeof value.length === 'number';
     return hasLength && value.length <= maximumLength ? VALID : message;
   };
 
@@ -45,5 +43,5 @@ export const composeValidators =
   (value: any) =>
     validators.reduce(
       (error: string | undefined, validator) => error || validator(value),
-      VALID
+      VALID,
     );
