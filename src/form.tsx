@@ -18,6 +18,11 @@ import {Circle, Path, Svg} from 'react-native-svg';
 import {FormContextProvider, useFormContext} from './formContext';
 import {formColors} from './formColors';
 import TogglePassword from './component/TogglePassword';
+import {
+  CheckboxFieldProps,
+  RadioFieldProps,
+  TextFieldProps,
+} from './fieldTypes';
 
 const NUMBER_REGEX = /^([0-9]*|[0-9]+\.{0,1}[0-9]{0,})$/;
 const MIN_TOP_VALUE = 3;
@@ -27,13 +32,6 @@ const ANIMATION_DURATION = 200;
 const MAX_SCALE = 1;
 const MIN_SCALE = 0.75;
 const MAX_LEFT_VALUE = 14;
-
-const textFieldTypes = {
-  text: 'text',
-  textBox: 'textBox',
-  number: 'number',
-  password: 'password',
-} as const;
 
 type ReactNativeFormTypes = {
   initalValues?: Record<string, unknown>;
@@ -55,67 +53,6 @@ type ReactNativeFormTypes = {
       value: string | undefined,
     ) => void;
     onSubmit: (event: GestureResponderEvent) => void;
-  }) => React.JSX.Element;
-};
-
-type TextFieldProps = {
-  name: string;
-  type: (typeof textFieldTypes)[keyof typeof textFieldTypes];
-  label?: string;
-  placeholder?: string;
-  mainContainerStyle?: Record<string, unknown>;
-  contentContainerStyle?: Record<string, unknown>;
-  textStyle?: Record<string, unknown>;
-  labelStyle?: Record<string, unknown>;
-  shouldUseScaleAnimation?: boolean;
-  disabled?: boolean;
-  enableTogglePasswordOption?: boolean;
-  togglePasswordType?: 'classic' | 'modern';
-  fillOnCheck?: boolean;
-  formatValue?: <T>(value: T) => T;
-  onChange?: (name: string, value: string | number | undefined) => void;
-  onFocus?: (name: string) => void;
-  onBlur?: (name: string) => void;
-  validate?: (value: string | number | undefined) => string | undefined;
-};
-
-type CheckboxFieldProps = {
-  name: string;
-  type: 'checkbox';
-  label: string;
-  value: string | number;
-  required?: boolean;
-  fillOnCheck?: boolean;
-  iconFillColor?: string;
-  mainContainerStyle?: Record<string, unknown>;
-  contentContainerStyle?: Record<string, unknown>;
-  labelStyle?: Record<string, unknown>;
-  checkboxStyle?: Record<string, unknown>;
-  renderItem?: (props: {
-    isChecked: boolean;
-    label: string;
-    value: string | number;
-  }) => React.JSX.Element;
-  onSelect?: (name: string, value: string | number) => void;
-};
-
-type RadioFieldProps = {
-  name: string;
-  type: 'radio';
-  label: string;
-  value: string | number;
-  required?: boolean;
-  iconFillColor?: string;
-  fillOnCheck?: boolean;
-  mainContainerStyle?: Record<string, unknown>;
-  contentContainerStyle?: Record<string, unknown>;
-  labelStyle?: Record<string, unknown>;
-  radioStyle?: Record<string, unknown>;
-  onSelect?: (name: string, value: string | number) => void;
-  renderItem?: (props: {
-    isChecked: boolean;
-    label: string;
-    value: string | number;
   }) => React.JSX.Element;
 };
 
@@ -491,8 +428,12 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     addFieldToTouched,
     addFieldError,
   } = formProps;
-  const sValue = (getNestedObjectValue(name, values) || []) as string[];
-  const isChecked = sValue.includes(value.toString());
+  const sValue = (getNestedObjectValue(name, values) || []) as (
+    | string
+    | number
+  )[];
+
+  const isChecked = sValue.includes(value);
   const isTouched = !!touched[name];
   const isFocused = active === name;
 
@@ -524,11 +465,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     if (typeof onSelect === 'function') {
       onSelect(name, value);
     }
-    if (typeof value === 'number') {
-      changeFormValues(name, type, value.toString());
-    } else {
-      changeFormValues(name, type, value);
-    }
+    changeFormValues(name, type, value);
   };
   const handlePressIn = () => {
     updateActiveField(name);
@@ -610,7 +547,7 @@ const RadioField = (props: RadioFieldProps) => {
   if (!name) {
     throw new Error('Name must be specified.');
   }
-  const sValue = (getNestedObjectValue(name, values) || '') as string;
+  const sValue = (getNestedObjectValue(name, values) || '') as string | number;
   const isChecked = sValue === value;
   const isTouched = !!touched[name];
   const isFocused = active === name;
@@ -653,11 +590,7 @@ const RadioField = (props: RadioFieldProps) => {
     if (typeof onSelect === 'function') {
       onSelect(name, value);
     }
-    if (typeof value === 'number') {
-      changeFormValues(name, type, value.toString());
-    } else {
-      changeFormValues(name, type, value);
-    }
+    changeFormValues(name, type, value);
   };
   const handlePressIn = () => {
     updateActiveField(name);
@@ -671,7 +604,9 @@ const RadioField = (props: RadioFieldProps) => {
 
   useEffect(() => {
     if (required) {
-      const errMessage = sValue.length ? undefined : `${name} is required`;
+      const errMessage = sValue.toString().length
+        ? undefined
+        : `${name} is required`;
       addFieldError(name, errMessage);
     }
   }, [sValue]);

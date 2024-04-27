@@ -1,11 +1,14 @@
-export * from "./form";
+export * from './form';
+export * from './component/FieldCheckboxGroup';
+export * from './component/FieldRadioGroup';
+
 import {
   maxLength,
   minLength,
   required,
   composeValidators,
   emailFormatValid,
-} from "./validators";
+} from './validators';
 
 export const validators = {
   maxLength,

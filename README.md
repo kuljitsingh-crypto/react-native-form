@@ -12,6 +12,8 @@ This is a React Native package that provides a simple and customizable form comp
   - [Text Fields](#text-fields)
   - [Radio Fields](#radio-fields)
   - [Checkbox Fields](#checkbox-fields)
+  - [Field Radio Group](#field-radio-group)
+  - [Field Checkbox Group](#field-checkbox-group)
 - [Validation Utility Functions](#validation-utility-functions)
 - [Contributing](#contributing)
 - [License](#license)
@@ -35,12 +37,25 @@ yarn add native-form
 Import the necessary components and use them in your React Native app:
 
 ```jsx
-import { ReactNativeForm, Field } from 'native-form';
+import { ReactNativeForm, Field, FieldRadioGroup, FieldCheckboxGroup } from 'native-form';
 
 const MyForm = () => {
   const handleSubmit = (values) => {
     console.log('Form values:', values);
   };
+
+  const radioOptions = [
+    { label: 'Option 1', value: 'option1' },
+    { label: 'Option 2', value: 'option2' },
+    { label: 'Option 3', value: 'option3' },
+  ];
+
+  const checkboxOptions=[
+    {value: 1, label: 'one checkbox'},
+    {value: 2, label: 'two checkbox'},
+    {value: 3, label: 'three checkbox'},
+    {value: 4, label: 'four checkbox'},
+  ]
 
   return (
     <ReactNativeForm onSubmit={handleSubmit} onRender={({ onSubmit }) => (
@@ -71,6 +86,16 @@ const MyForm = () => {
           type="radio"
           label="Female"
           value="female"
+        />
+        <FieldRadioGroup 
+          name="radio" 
+          options={radioOptions} 
+          renderChildrenAs="row"
+        />
+        <FieldCheckboxGroup
+          name="checkbox"
+          options={checkboxOptions}
+          fillOnCheck={true}
         />
         <Field
           name="interests"
@@ -168,6 +193,40 @@ The `ReactNativeForm` component accepts the following props:
 | `onSelect` | `(name: string, value: string \| number) => void` | Optional. A callback function that is called when a checkbox |
 `renderItem` | `(props: { isChecked: boolean, label: string, value: string \| number }) => JSX.Element` | Optional. A render prop to customize the rendering of the checkbox option. |
 
+### Field Radio Group
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `name` | `String` | A string representing the name of the field group. |
+| `options` | `Array` | An array of objects representing the radio button options. Each object should have a `label` and a `value` property. |
+| `renderChildrenAs` | `String` | Optional. Default `'column'`. A string that determines the layout of the radio buttons. It can be either `'row'` or `'column'`. |
+| `required` | `boolean` | Optional. Whether the field group is required. |
+| `iconFillColor` | `string` | Optional. The color to be used for the radio icon. |
+| `fillOnCheck` | `boolean` | Optional. Whether to fill the radio icon when checked. |
+| `mainContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the main container view. |
+| `contentContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the content container view. |
+| `labelStyle` | `Record<string, unknown>` | Optional. Additional styles for the label. |
+| `radioStyle` | `Record<string, unknown>` | Optional. Additional styles for the radio icon. |
+| `onSelect` | `(name: string, value: string \| number) => void` | Optional. A callback function that is called when a radio option is selected. |
+| `renderItem` | `(props: { isChecked: boolean, label: string, value: string \| number }) => JSX.Element` | Optional. A render prop to customize the rendering of the radio option. |
+
+### Field Checkbox Group
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `name` | `String` | A string representing the name of the field group. |
+| `options` | `Array` | An array of objects representing the checkbox options. Each object should have a `label` and a `value` property. |
+| `renderChildrenAs` | `String` | Optional. Default `'column'`. A string that determines the layout of the checkbox. It can be either `'row'` or `'column'`. |
+| `required` | `boolean` | Optional. Whether the field group is required. |
+| `iconFillColor` | `string` | Optional. The color to be used for the checkbox icon. |
+| `fillOnCheck` | `boolean` | Optional. Whether to fill the checkbox icon when checked. |
+| `mainContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the main container view. |
+| `contentContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the content container view. |
+| `labelStyle` | `Record<string, unknown>` | Optional. Additional styles for the label. |
+| `checkboxStyle` | `Record<string, unknown>` | Optional. Additional styles for the checkbox icon. |
+| `onSelect` | `(name: string, value: string \| number) => void` | Optional. A callback function that is called when a checkbox option is selected. |
+| `renderItem` | `(props: { isChecked: boolean, label: string, value: string \| number }) => JSX.Element` | Optional. A render prop to customize the rendering of the checkbox option. |
+
 
 ## Validation Utility Functions
 
@@ -238,3 +297,4 @@ Contributions are welcome! If you find any issues or want to add new features, f
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
