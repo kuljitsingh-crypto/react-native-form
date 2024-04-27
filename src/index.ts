@@ -1,6 +1,6 @@
 export * from './form';
-export * from './component/FieldCheckboxGroup';
-export * from './component/FieldRadioGroup';
+export {default as FieldCheckboxGroup} from './component/FieldCheckboxGroup';
+export {default as FieldRadioGroup} from './component/FieldRadioGroup';
 
 import {
   maxLength,
