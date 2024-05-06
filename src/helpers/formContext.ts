@@ -9,7 +9,12 @@ type FormContextType = {
   changeFormValues: (
     name: string,
     type: string,
-    value: string | number | undefined,
+    value:
+      | string
+      | number
+      | Record<string, unknown>
+      | Record<string, unknown>[]
+      | undefined,
   ) => void;
   addFieldToTouched: (name: string) => void;
   updateActiveField: (name: string, isFocused?: boolean) => void;

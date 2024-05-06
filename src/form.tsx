@@ -15,23 +15,27 @@ import React, {
   useState,
 } from 'react';
 import {Circle, Path, Svg} from 'react-native-svg';
-import {FormContextProvider, useFormContext} from './formContext';
+import {FormContextProvider, useFormContext} from './helpers/formContext';
 import {formColors} from './formColors';
 import TogglePassword from './component/TogglePassword';
 import {
   CheckboxFieldProps,
   RadioFieldProps,
   TextFieldProps,
-} from './fieldTypes';
+  fieldTypes,
+  isArrayTypeValue,
+  shouldRemoveValueIfExist,
+} from './helpers/fieldTypes';
+import {useOpacityAnimation} from './helpers/opacityAnimHook';
+import {
+  getNestedObjectValue,
+  pushValueToNestedObject,
+  setNestedObjectValue,
+} from './helpers/dataHelper';
+import {useScaleAnimation} from './helpers/scaleAnimHook';
 
 const NUMBER_REGEX = /^([0-9]*|[0-9]+\.{0,1}[0-9]{0,})$/;
-const MIN_TOP_VALUE = 3;
-const MAX_TOP_VALUE = 13;
 const MAX_FONT_SIZE = 16;
-const ANIMATION_DURATION = 200;
-const MAX_SCALE = 1;
-const MIN_SCALE = 0.75;
-const MAX_LEFT_VALUE = 14;
 
 type ReactNativeFormTypes = {
   initalValues?: Record<string, unknown>;
@@ -54,69 +58,6 @@ type ReactNativeFormTypes = {
     ) => void;
     onSubmit: (event: GestureResponderEvent) => void;
   }) => React.JSX.Element;
-};
-
-const setNestedObjectValue = (
-  name: string,
-  value: string | number | undefined,
-) => {
-  const nameArr = name.replace(/\.{1,}$/, '').split('.');
-  const arrObject: Record<string, unknown> = {};
-  let obj = arrObject;
-  const nameArrLength = nameArr.length;
-  const lastIndx = nameArrLength - 1;
-  for (let i = 0; i < nameArrLength; i++) {
-    if (i === lastIndx) {
-      obj[nameArr[i]] = value;
-    } else {
-      obj[nameArr[i]] = {};
-      obj = obj[nameArr[i]] as Record<string, unknown>;
-    }
-  }
-  return arrObject;
-};
-
-const pushValueToNestedObject = (
-  name: string,
-  obj: Record<string, unknown>,
-  value: string | number,
-  shouldRemoveIfExists?: boolean,
-) => {
-  const nameArr = name.replace(/\.{1,}$/, '').split('.');
-  const arrObject: Record<string, unknown> = {};
-  let current = arrObject,
-    objRef = obj,
-    temp,
-    i;
-  const lastIndx = nameArr.length - 1;
-  for (i = 0; i < lastIndx; i++) {
-    temp = nameArr[i];
-    current[temp] = {};
-    current = current[temp] as Record<string, unknown>;
-    objRef = (objRef[temp] || {}) as Record<string, unknown>;
-  }
-  const lastKeyName = nameArr[lastIndx];
-  const preValue = (objRef[lastKeyName] || []) as (string | number)[];
-  const isValueExist = preValue.includes(value);
-  const newValue = isValueExist
-    ? shouldRemoveIfExists
-      ? preValue.filter(v => v !== value)
-      : [...preValue]
-    : [...preValue, value];
-  current[lastKeyName] = newValue;
-  return arrObject;
-};
-
-const getNestedObjectValue = (name: string, obj: Record<string, unknown>) => {
-  const nameArr = name.replace(/\.{1,}$/, '').split('.');
-  let value = obj;
-  for (let name of nameArr) {
-    if (!(name in value)) {
-      return undefined;
-    }
-    value = value[name] as Record<string, unknown>;
-  }
-  return value as unknown;
 };
 
 const CheckSvg = (props: {width: number; height: number; fill: string}) => {
@@ -186,47 +127,7 @@ const TextField = (props: TextFieldProps) => {
   );
 
   const [showPwd, setShowPwd] = useState(false);
-  const scaleAnim = useRef(new Animated.Value(value ? MIN_SCALE : MAX_SCALE));
-  const transYAnim = useRef(
-    new Animated.Value(value ? MIN_TOP_VALUE : MAX_TOP_VALUE),
-  );
-
-  const scaleOut = () => {
-    if (isLabelAnimationEnabled) {
-      Animated.parallel(
-        [
-          Animated.timing(scaleAnim.current, {
-            toValue: MIN_SCALE,
-            duration: ANIMATION_DURATION,
-            useNativeDriver: true,
-          }),
-          Animated.timing(transYAnim.current, {
-            toValue: MIN_TOP_VALUE,
-            duration: ANIMATION_DURATION,
-            useNativeDriver: true,
-          }),
-        ],
-        {stopTogether: true},
-      ).start();
-    }
-  };
-
-  const scaleIn = () => {
-    if (isLabelAnimationEnabled) {
-      Animated.parallel([
-        Animated.timing(scaleAnim.current, {
-          toValue: MAX_SCALE,
-          duration: ANIMATION_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(transYAnim.current, {
-          toValue: MAX_TOP_VALUE,
-          duration: ANIMATION_DURATION,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  };
+  const {scaleIn, scaleOut, scaleStyle} = useScaleAnimation(value);
 
   const numberInputFormater = (value: string) => {
     if (type === 'number') {
@@ -329,17 +230,7 @@ const TextField = (props: TextFieldProps) => {
     styles.textLabel,
     ...(hasInput ? [styles.focusedTextLabel] : []),
     ...(propsLabelStyle ? [propsLabelStyle] : []),
-    ...(isLabelAnimationEnabled
-      ? [
-          {
-            transform: [
-              {scale: scaleAnim.current},
-              {translateX: MAX_LEFT_VALUE},
-              {translateY: transYAnim.current},
-            ],
-          },
-        ]
-      : []),
+    ...(isLabelAnimationEnabled ? [scaleStyle] : []),
   ];
 
   const placeholderMaybe = label ? {} : placeholder ? {placeholder} : {};
@@ -433,6 +324,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     | number
   )[];
 
+  const {containerBgStyle, onPressIn, onPressOut} = useOpacityAnimation();
   const isChecked = sValue.includes(value);
   const isTouched = !!touched[name];
   const isFocused = active === name;
@@ -440,6 +332,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
   const mainContainerStyle = [
     styles.checkboxMainContainer,
     ...(propsMainContainerStyle ? [propsMainContainerStyle] : []),
+    containerBgStyle,
   ];
 
   const contentContainerStyle = [
@@ -469,12 +362,14 @@ const CheckboxField = (props: CheckboxFieldProps) => {
   };
   const handlePressIn = () => {
     updateActiveField(name);
+    onPressIn();
   };
   const handlePressOut = () => {
     if (isFocused && !isTouched) {
       addFieldToTouched(name);
     }
     updateActiveField(name, false);
+    onPressOut();
   };
 
   useEffect(() => {
@@ -491,7 +386,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
       onPress={handleOnPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
-      <View style={contentContainerStyle}>
+      <Animated.View style={contentContainerStyle}>
         {typeof renderItem === 'function' ? (
           renderItem({isChecked, value, label})
         ) : (
@@ -512,7 +407,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
             <Text style={labelStyle}>{label}</Text>
           </React.Fragment>
         )}
-      </View>
+      </Animated.View>
     </Pressable>
   );
 };
@@ -547,6 +442,7 @@ const RadioField = (props: RadioFieldProps) => {
   if (!name) {
     throw new Error('Name must be specified.');
   }
+  const {containerBgStyle, onPressIn, onPressOut} = useOpacityAnimation();
   const sValue = (getNestedObjectValue(name, values) || '') as string | number;
   const isChecked = sValue === value;
   const isTouched = !!touched[name];
@@ -555,6 +451,7 @@ const RadioField = (props: RadioFieldProps) => {
   const mainContainerStyle = [
     styles.radioMainContainer,
     ...(propsMainContainerStyle ? [propsMainContainerStyle] : []),
+    containerBgStyle,
   ];
 
   const contentContainerStyle = [
@@ -594,12 +491,14 @@ const RadioField = (props: RadioFieldProps) => {
   };
   const handlePressIn = () => {
     updateActiveField(name);
+    onPressIn();
   };
   const handlePressOut = () => {
     if (isFocused && !isTouched) {
       addFieldToTouched(name);
     }
     updateActiveField(name, false);
+    onPressOut();
   };
 
   useEffect(() => {
@@ -618,7 +517,7 @@ const RadioField = (props: RadioFieldProps) => {
       onPress={handleOnPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
-      <View style={contentContainerStyle}>
+      <Animated.View style={contentContainerStyle}>
         {typeof renderItem === 'function' ? (
           renderItem({isChecked, label, value})
         ) : (
@@ -629,7 +528,7 @@ const RadioField = (props: RadioFieldProps) => {
             <Text style={labelStyle}>{label}</Text>
           </React.Fragment>
         )}
-      </View>
+      </Animated.View>
     </Pressable>
   );
 };
@@ -639,14 +538,14 @@ export const Field = (
 ) => {
   const {type} = props;
   switch (type) {
-    case 'text':
-    case 'textBox':
-    case 'number':
-    case 'password':
+    case fieldTypes.text:
+    case fieldTypes.textBox:
+    case fieldTypes.number:
+    case fieldTypes.password:
       return <TextField {...props} />;
-    case 'checkbox':
+    case fieldTypes.checkbox:
       return <CheckboxField {...props} />;
-    case 'radio':
+    case fieldTypes.radio:
       return <RadioField {...props} />;
     default:
       return null;
@@ -685,22 +584,30 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
   const changeFormValues = (
     name: string,
     type: string,
-    value: string | number | undefined,
+    value:
+      | string
+      | number
+      | Record<string, unknown>
+      | Record<string, unknown>[]
+      | undefined,
   ) => {
-    if (type === 'checkbox') {
+    if (isArrayTypeValue(type)) {
       if (value) {
         setFormValues(formValues => {
           const arrayValue = pushValueToNestedObject(
             name,
             formValues,
             value,
-            true,
+            shouldRemoveValueIfExist(type),
           );
           return {...formValues, ...arrayValue};
         });
       }
     } else {
-      const finalValue = setNestedObjectValue(name, value);
+      const finalValue = setNestedObjectValue(
+        name,
+        value as string | number | Record<string, unknown> | undefined,
+      );
       setFormValues(formValues => ({...formValues, ...finalValue}));
     }
   };

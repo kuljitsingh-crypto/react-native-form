@@ -14,6 +14,7 @@ This is a React Native package that provides a simple and customizable form comp
   - [Checkbox Fields](#checkbox-fields)
   - [Field Radio Group](#field-radio-group)
   - [Field Checkbox Group](#field-checkbox-group)
+- [Field Select](#field-select)
 - [Validation Utility Functions](#validation-utility-functions)
 - [Contributing](#contributing)
 - [License](#license)
@@ -226,6 +227,76 @@ The `ReactNativeForm` component accepts the following props:
 | `checkboxStyle` | `Record<string, unknown>` | Optional. Additional styles for the checkbox icon. |
 | `onSelect` | `(name: string, value: string \| number) => void` | Optional. A callback function that is called when a checkbox option is selected. |
 | `renderItem` | `(props: { isChecked: boolean, label: string, value: string \| number }) => JSX.Element` | Optional. A render prop to customize the rendering of the checkbox option. |
+
+
+# Field Select
+
+The `FieldSelect` component is a reusable React Native component that provides a dropdown-like input field for single or multi-select options. It supports various customization options and includes animations for a smooth user experience.
+
+## Features
+
+- Single and multi-select options
+- Label or placeholder support
+- Customizable styles for various elements
+- Animations for smooth transitions
+- Option to close the modal or show a confirm button after selection
+- Optional custom rendering for items and selected values
+
+## Usage
+
+Here's an example of how to use the `FieldSelect` component:
+
+```jsx
+import React from 'react';
+import { View } from 'react-native';
+import FieldSelect from './path/to/FieldSelect';
+
+const options = [
+  { value: 1, label: 'Option 1' },
+  { value: 2, label: 'Option 2' },
+  { value: 3, label: 'Option 3' },
+];
+
+const MyComponent = () => {
+  return (
+    <View>
+      <FieldSelect
+        name="myField"
+        label="Select an option"
+        options={options}
+        multiple={false} // Set to true for multi-select
+        closeOnSelect={false} // Close the modal after selection
+        confirmButtonText="Done" // Text for the confirm button
+      />
+    </View>
+  );
+};
+
+export default MyComponent;
+```
+
+## Props
+
+The `FieldSelect` component accepts the following props:
+
+| Prop                   | Type                                                                     | Description                                                                    |
+| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `name`                 | `string`                                                                 | **Required**. The name of the field.                                           |
+| `label`                | `string`                                                                 | The label text for the input field.                                            |
+| `placeholder`          | `string`                                                                 | The placeholder text for the input field.                                      |
+| `multiple`             | `boolean`                                                                | Whether to allow multi-select or not. Default is `false`.                     |
+| `options`              | `SingleItemType[]`                                                       | **Required**. The array of options to display.                                |
+| `mainContainerStyle`   | `Record<string, unknown>`                                                | Custom styles for the main container.                                         |
+| `itemContentStyle`     | `Record<string, unknown>`                                                | Custom styles for the individual item containers.                             |
+| `itemsContainerStyle`  | `Record<string, unknown>`                                                | Custom styles for the items container in the modal.                           |
+| `closeOnSelect`        | `boolean`                                                                 | Whether to close the modal after selection or not. Default is `false`.        |
+| `confirmButtonText`    | `string`                                                                 | The text for the confirm button in the modal. Default is `'Confirm'`.         |
+| `confirmButtonStyle`   | `Record<string, unknown>`                                                | Custom styles for the confirm button.                                          |
+| `confirmButtonTextStyle` | `Record<string, unknown>`                                                | Custom styles for the confirm button text.                                    |
+| `required`             | `boolean`                                                                | Whether the field is required or not.                                          |
+| `renderItem`           | `(props: {isSelected: boolean, label: string, value: string \| number}) => React.JSX.Element` | Custom render function for the individual items.                              |
+| `renderValue`          | `(values: {value: string \| number, label: string}[] \| {value: string \| number, label: string}) => React.JSX.Element` | Custom render function for the selected values.                                |
+| `onSelect`             | `(item: itemType) => void`                                               |  Callback function when an option is selected.                   |
 
 
 ## Validation Utility Functions

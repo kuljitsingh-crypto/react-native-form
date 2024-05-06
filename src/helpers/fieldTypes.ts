@@ -5,6 +5,14 @@ export const textFieldTypes = {
   password: 'password',
 } as const;
 
+export const fieldTypes = {
+  ...textFieldTypes,
+  checkbox: 'checkbox',
+  radio: 'radio',
+  singleSelect: 'singleSelect',
+  multiSelect: 'multiSelect',
+} as const;
+
 export type TextFieldProps = {
   name: string;
   type: (typeof textFieldTypes)[keyof typeof textFieldTypes];
@@ -75,3 +83,38 @@ export type FieldRadioGroupProps = {
   renderChildrenAs?: 'column' | 'row';
   options: {value: string | number; label: string}[];
 } & Omit<RadioFieldProps, 'value' | 'label' | 'type'>;
+
+export type FieldSelectProps = {
+  name: string;
+  options: {value: string | number; label: string}[];
+  placeholder?: string;
+  required?: boolean;
+  label?: string;
+  multiple?: boolean;
+  closeOnSelect?: boolean;
+  confirmButtonText?: string;
+  confirmButtonStyle?: Record<string, unknown>;
+  confirmButtonTextStyle?: Record<string, unknown>;
+  mainContainerStyle?: Record<string, unknown>;
+  itemsContainerStyle?: Record<string, unknown>;
+  itemContentStyle?: Record<string, unknown>;
+  onSelect?: (name: string, value: string | number) => void;
+  renderItem?: (props: {
+    isSelected: boolean;
+    label: string;
+    value: string | number;
+  }) => React.JSX.Element;
+  renderValue?: (
+    values:
+      | {value: string | number; label: string}[]
+      | {value: string | number; label: string},
+  ) => React.JSX.Element;
+};
+
+export const isArrayTypeValue = (type: string) => {
+  return type === fieldTypes.checkbox || type === fieldTypes.multiSelect;
+};
+
+export const shouldRemoveValueIfExist = (type: string) => {
+  return type === fieldTypes.checkbox || type === fieldTypes.multiSelect;
+};

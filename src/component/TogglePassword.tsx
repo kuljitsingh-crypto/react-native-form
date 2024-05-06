@@ -1,9 +1,8 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import {Animated, Pressable, StyleSheet, Text, View} from 'react-native';
 import {Circle, Path, Svg} from 'react-native-svg';
 import {formColors} from '../formColors';
-
-const ANIMATION_DURATION = 100;
+import {useOpacityAnimation} from '../helpers/opacityAnimHook';
 
 type TogglePasswordCompProps = {
   fillOnCheck?: boolean;
@@ -150,31 +149,14 @@ const TogglePassword = (props: TogglePasswordCompProps) => {
     mainContainerStyle: propsMainContainerStyle,
     togglePassword,
   } = props;
-
-  const opacityAnim = useRef(new Animated.Value(1));
-
-  const opacityIn = () => {
-    Animated.timing(opacityAnim.current, {
-      duration: ANIMATION_DURATION,
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const opacityOut = () => {
-    Animated.timing(opacityAnim.current, {
-      duration: ANIMATION_DURATION,
-      toValue: 0.2,
-      useNativeDriver: true,
-    }).start();
-  };
+  const {containerBgStyle, onPressIn, onPressOut} = useOpacityAnimation();
 
   const handlePressIn = () => {
-    opacityOut();
+    onPressIn();
   };
 
   const handlePressOut = () => {
-    opacityIn();
+    onPressOut();
     togglePassword();
   };
 
@@ -182,6 +164,7 @@ const TogglePassword = (props: TogglePasswordCompProps) => {
     styles.mainContainer,
     ...(togglePasswordType === 'modern' ? [styles.modernMainContainer] : []),
     ...(propsMainContainerStyle ? [propsMainContainerStyle] : []),
+    containerBgStyle,
   ];
 
   return showTogglePasswordOption ? (
@@ -189,7 +172,7 @@ const TogglePassword = (props: TogglePasswordCompProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={mainContainerStyle}>
-      <Animated.View style={{opacity: opacityAnim.current}}>
+      <Animated.View>
         {togglePasswordType === 'classic' ? (
           <ClassicTogglePasswordComp
             fillOnCheck={fillOnCheck}

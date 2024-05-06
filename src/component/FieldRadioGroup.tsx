@@ -1,16 +1,17 @@
 import {StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {Field} from '../form';
-import {FieldRadioGroupProps} from '../fieldTypes';
+import {FieldRadioGroupProps} from '../helpers/fieldTypes';
+import {useOptionValidator} from '../helpers/optionValidationHook';
 
 const FieldRadioGroup = (props: FieldRadioGroupProps) => {
   const {
-    options,
+    options = [],
     renderChildrenAs,
     mainContainerStyle: propsMainContainerStyle,
     ...rest
   } = props;
-
+  useOptionValidator(options);
   const mainContainerStyle = {
     ...(renderChildrenAs === 'row' ? styles.rowFieldMainContainer : {}),
     ...(propsMainContainerStyle ? propsMainContainerStyle : {}),
