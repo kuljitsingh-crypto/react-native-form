@@ -249,7 +249,7 @@ Here's an example of how to use the `FieldSelect` component:
 ```jsx
 import React from 'react';
 import { View } from 'react-native';
-import FieldSelect from 'native-form';
+import {FieldSelect} from 'native-form';
 
 const options = [
   { value: 1, label: 'Option 1' },
