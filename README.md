@@ -131,7 +131,9 @@ The `ReactNativeForm` component accepts the following props:
 | `formStyle` | `Record<string, unknown>` | Optional. Additional styles for the form container. |
 | `submitting` | `boolean` | Optional. Whether the form is currently submitting. |
 | `onSubmit` | `(value: Record<string, unknown>) => void` | Required. A callback function that is called when the form is submitted. |
-| `onRender` | `(arg: { invalid: boolean, submitting: boolean, active: string \| undefined, values: Record<string, unknown>, initialValues: Record<string, unknown>, touched: Record<string, boolean>, errors: Record<string, unknown>, changeFormValues: (name: string, type: string, value: string \| undefined) => void, onSubmit: (event: GestureResponderEvent) => void }) => React.JSX.Element` | Required. A render prop that receives form state and helper functions as arguments and returns the form content. |
+| `onRender` | `(arg: { invalid: boolean, submitting: boolean, active: string \| undefined, values: Record<string, unknown>, initialValues: Record<string, unknown>, touched: Record<string, boolean>, errors: Record<string, unknown>, changeFormValues: (name: string, type: string, value: string \| undefined) => void, onSubmit: (event: GestureResponderEvent) => void }) => React.JSX.Element, submitError?: Record<string, any> \| null,extra: Record<string, any>,prinstine: boolean` | Required. A render prop that receives form state and helper functions as arguments and returns the form content. The `prinstine`  is a boolean value that indicates whether the form values have been changed or not since the initial render. It is initialized as `false` and is set to `true` whenever the form values are changed and again set to `false` after form submit.|
+| `submitError` | `Record<string, any> \| null` |(optional): An object containing any submission errors.|
+| `extra` | `Record<string, any>`  |(optional): An object to pass additional data to the onRender function.
 
 ## Field Options
 

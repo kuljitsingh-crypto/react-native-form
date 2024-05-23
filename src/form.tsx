@@ -6,18 +6,18 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
+} from "react-native";
 import React, {
   createContext,
   useContext,
   useEffect,
   useRef,
   useState,
-} from 'react';
-import {Circle, Path, Svg} from 'react-native-svg';
-import {FormContextProvider, useFormContext} from './helpers/formContext';
-import {formColors} from './formColors';
-import TogglePassword from './component/TogglePassword';
+} from "react";
+import { Circle, Path, Svg } from "react-native-svg";
+import { FormContextProvider, useFormContext } from "./helpers/formContext";
+import { formColors } from "./formColors";
+import TogglePassword from "./component/TogglePassword";
 import {
   CheckboxFieldProps,
   RadioFieldProps,
@@ -25,14 +25,14 @@ import {
   fieldTypes,
   isArrayTypeValue,
   shouldRemoveValueIfExist,
-} from './helpers/fieldTypes';
-import {useOpacityAnimation} from './helpers/opacityAnimHook';
+} from "./helpers/fieldTypes";
+import { useOpacityAnimation } from "./helpers/opacityAnimHook";
 import {
   getNestedObjectValue,
   pushValueToNestedObject,
   setNestedObjectValue,
-} from './helpers/dataHelper';
-import {useScaleAnimation} from './helpers/scaleAnimHook';
+} from "./helpers/dataHelper";
+import { useScaleAnimation } from "./helpers/scaleAnimHook";
 
 const NUMBER_REGEX = /^([0-9]*|[0-9]+\.{0,1}[0-9]{0,})$/;
 const MAX_FONT_SIZE = 16;
@@ -41,8 +41,9 @@ type ReactNativeFormTypes = {
   initalValues?: Record<string, unknown>;
   formStyle?: Record<string, unknown>;
   submitting?: boolean;
+  submitError?: Record<string, any> | null;
   primaryColor?: string;
-  onSubmit: (value: Record<string, unknown>) => void;
+  onSubmit: (value: Record<string, unknown>) => void | Promise<void>;
   onRender: (arg: {
     invalid: boolean;
     submitting: boolean;
@@ -54,18 +55,22 @@ type ReactNativeFormTypes = {
     changeFormValues: (
       name: string,
       type: string,
-      value: string | undefined,
+      value: string | undefined
     ) => void;
     onSubmit: (event: GestureResponderEvent) => void;
+    submitError?: Record<string, any> | null;
+    extra: Record<string, any>;
+    prinstine: boolean;
   }) => React.JSX.Element;
+  extra?: Record<string, any>;
 };
 
-const CheckSvg = (props: {width: number; height: number; fill: string}) => {
-  const {width = 24, height = 24, fill = '#000'} = props;
+const CheckSvg = (props: { width: number; height: number; fill: string }) => {
+  const { width = 24, height = 24, fill = "#000" } = props;
   return (
-    <Svg viewBox="0 0 16 16" width={width} height={height}>
+    <Svg viewBox='0 0 16 16' width={width} height={height}>
       <Path
-        d="M0,6.51045l5.47909,5.48955l10.5209,-10.5105l-1.51045,-1.48955l-9.01045,9l-3.98955,-3.98955Z"
+        d='M0,6.51045l5.47909,5.48955l10.5209,-10.5105l-1.51045,-1.48955l-9.01045,9l-3.98955,-3.98955Z'
         fill={fill}></Path>
     </Svg>
   );
@@ -106,14 +111,14 @@ const TextField = (props: TextFieldProps) => {
   } = formProps;
 
   if (!label && !placeholder) {
-    throw new Error('Either label or placeholder must be specified.');
+    throw new Error("Either label or placeholder must be specified.");
   }
 
   if (!name) {
-    throw new Error('Name must be specified.');
+    throw new Error("Name must be specified.");
   }
 
-  const value = (getNestedObjectValue(name, values) || '') as string;
+  const value = (getNestedObjectValue(name, values) || "") as string;
   const isTouched = !!touched[name];
   const isFocused = active === name;
   const hasInput = !!value || isFocused;
@@ -121,27 +126,27 @@ const TextField = (props: TextFieldProps) => {
   const showErrorMessage = isTouched && !!errMsg;
   const isLabelAnimationEnabled = !!(shouldUseScaleAnimation && label);
   const validTogglePasswordType =
-    togglePasswordType === 'modern' ? 'modern' : 'classic';
+    togglePasswordType === "modern" ? "modern" : "classic";
   const shouldShowPwdToggleOption = !!(
-    enableTogglePasswordOption && type === 'password'
+    enableTogglePasswordOption && type === "password"
   );
 
   const [showPwd, setShowPwd] = useState(false);
-  const {scaleIn, scaleOut, scaleStyle} = useScaleAnimation(value);
+  const { scaleIn, scaleOut, scaleStyle } = useScaleAnimation(value);
 
   const numberInputFormater = (value: string) => {
-    if (type === 'number') {
+    if (type === "number") {
       if (NUMBER_REGEX.test(value)) {
         return value;
       }
-      return '';
+      return "";
     }
     return value;
   };
 
   const handleFocus = () => {
     if (disabled) return;
-    if (typeof propsOnFocus === 'function') {
+    if (typeof propsOnFocus === "function") {
       propsOnFocus(name);
     }
 
@@ -152,7 +157,7 @@ const TextField = (props: TextFieldProps) => {
   const handleBlur = () => {
     if (disabled) return;
 
-    if (typeof propsOnBlur === 'function') {
+    if (typeof propsOnBlur === "function") {
       propsOnBlur(name);
     }
     updateActiveField(name, false);
@@ -165,7 +170,7 @@ const TextField = (props: TextFieldProps) => {
   };
 
   const validateUserValue = (value?: string | number) => {
-    if (typeof validate === 'function') {
+    if (typeof validate === "function") {
       const err = validate(value);
       addFieldError(name, err);
     }
@@ -175,14 +180,14 @@ const TextField = (props: TextFieldProps) => {
     if (disabled) return;
 
     let finalValue =
-      type === 'number'
+      type === "number"
         ? parseFloat(numberInputFormater(value))
         : numberInputFormater(value);
-    if (typeof formatValue === 'function') {
+    if (typeof formatValue === "function") {
       finalValue = formatValue(finalValue);
     }
     if (value && !finalValue) return;
-    if (typeof onChange === 'function') {
+    if (typeof onChange === "function") {
       onChange(name, finalValue);
     }
     changeFormValues(name, type, finalValue);
@@ -190,17 +195,17 @@ const TextField = (props: TextFieldProps) => {
   };
 
   const togglePassword = () => {
-    setShowPwd(showPwd => !showPwd);
+    setShowPwd((showPwd) => !showPwd);
   };
 
   const extraProps = {
-    ...(type === 'textBox' ? {multiline: true} : {}),
-    ...(type === 'number'
-      ? ({keyboardType: 'numeric'} as const)
-      : ({keyboardType: 'default'} as const)),
-    ...(type === 'password'
-      ? {secureTextEntry: shouldShowPwdToggleOption ? !showPwd : true}
-      : {secureTextEntry: false}),
+    ...(type === "textBox" ? { multiline: true } : {}),
+    ...(type === "number"
+      ? ({ keyboardType: "numeric" } as const)
+      : ({ keyboardType: "default" } as const)),
+    ...(type === "password"
+      ? { secureTextEntry: shouldShowPwdToggleOption ? !showPwd : true }
+      : { secureTextEntry: false }),
   };
 
   const mainContainerStyle = [
@@ -219,8 +224,8 @@ const TextField = (props: TextFieldProps) => {
 
   const textStyle = [
     styles.textInput,
-    ...(type === 'textBox' ? [styles.textBoxInput] : []),
-    ...(shouldShowPwdToggleOption && validTogglePasswordType === 'modern'
+    ...(type === "textBox" ? [styles.textBoxInput] : []),
+    ...(shouldShowPwdToggleOption && validTogglePasswordType === "modern"
       ? [styles.mordenPasswordInput]
       : []),
     ...(propsTextStyle ? [propsTextStyle] : []),
@@ -233,7 +238,7 @@ const TextField = (props: TextFieldProps) => {
     ...(isLabelAnimationEnabled ? [scaleStyle] : []),
   ];
 
-  const placeholderMaybe = label ? {} : placeholder ? {placeholder} : {};
+  const placeholderMaybe = label ? {} : placeholder ? { placeholder } : {};
 
   useEffect(() => {
     validateUserValue(value);
@@ -259,7 +264,7 @@ const TextField = (props: TextFieldProps) => {
           {...extraProps}
           {...placeholderMaybe}
         />
-        {shouldShowPwdToggleOption && validTogglePasswordType === 'modern' ? (
+        {shouldShowPwdToggleOption && validTogglePasswordType === "modern" ? (
           <TogglePassword
             showTogglePasswordOption={shouldShowPwdToggleOption}
             togglePasswordType={validTogglePasswordType}
@@ -267,14 +272,16 @@ const TextField = (props: TextFieldProps) => {
             fillOnCheck={fillOnCheck}
             togglePassword={togglePassword}
             showPwd={showPwd}
-            mainContainerStyle={label ? {transform: [{translateY: -14}]} : {}}
+            mainContainerStyle={
+              label ? { transform: [{ translateY: -14 }] } : {}
+            }
           />
         ) : null}
       </View>
       {showErrorMessage ? (
         <Text style={styles.textErrMsg}>{errMsg}</Text>
       ) : null}
-      {shouldShowPwdToggleOption && validTogglePasswordType === 'classic' ? (
+      {shouldShowPwdToggleOption && validTogglePasswordType === "classic" ? (
         <TogglePassword
           showTogglePasswordOption={shouldShowPwdToggleOption}
           togglePasswordType={validTogglePasswordType}
@@ -282,7 +289,7 @@ const TextField = (props: TextFieldProps) => {
           fillOnCheck={fillOnCheck}
           togglePassword={togglePassword}
           showPwd={showPwd}
-          mainContainerStyle={showErrorMessage ? {marginTop: 0} : {}}
+          mainContainerStyle={showErrorMessage ? { marginTop: 0 } : {}}
         />
       ) : null}
     </View>
@@ -306,7 +313,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     renderItem,
   } = props;
   if (!name) {
-    throw new Error('Name must be specified.');
+    throw new Error("Name must be specified.");
   }
   const formProps = useFormContext();
   const {
@@ -324,7 +331,7 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     | number
   )[];
 
-  const {containerBgStyle, onPressIn, onPressOut} = useOpacityAnimation();
+  const { containerBgStyle, onPressIn, onPressOut } = useOpacityAnimation();
   const isChecked = sValue.includes(value);
   const isTouched = !!touched[name];
   const isFocused = active === name;
@@ -349,13 +356,13 @@ const CheckboxField = (props: CheckboxFieldProps) => {
     styles.checkStatus,
     ...(fillOnCheck && isChecked ? [styles.filledCheckedStatus] : []),
     ...(fillOnCheck && isChecked
-      ? [{backgroundColor: primaryColor, borderColor: primaryColor}]
-      : [{borderColor: primaryColor}]),
+      ? [{ backgroundColor: primaryColor, borderColor: primaryColor }]
+      : [{ borderColor: primaryColor }]),
     ...(propsCheckboxStyle ? [propsCheckboxStyle] : []),
   ];
 
   const handleOnPress = () => {
-    if (typeof onSelect === 'function') {
+    if (typeof onSelect === "function") {
       onSelect(name, value);
     }
     changeFormValues(name, type, value);
@@ -387,8 +394,8 @@ const CheckboxField = (props: CheckboxFieldProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
       <Animated.View style={contentContainerStyle}>
-        {typeof renderItem === 'function' ? (
-          renderItem({isChecked, value, label})
+        {typeof renderItem === "function" ? (
+          renderItem({ isChecked, value, label })
         ) : (
           <React.Fragment>
             <View style={checkStatusStyle}>
@@ -440,10 +447,10 @@ const RadioField = (props: RadioFieldProps) => {
     addFieldError,
   } = formProps;
   if (!name) {
-    throw new Error('Name must be specified.');
+    throw new Error("Name must be specified.");
   }
-  const {containerBgStyle, onPressIn, onPressOut} = useOpacityAnimation();
-  const sValue = (getNestedObjectValue(name, values) || '') as string | number;
+  const { containerBgStyle, onPressIn, onPressOut } = useOpacityAnimation();
+  const sValue = (getNestedObjectValue(name, values) || "") as string | number;
   const isChecked = sValue === value;
   const isTouched = !!touched[name];
   const isFocused = active === name;
@@ -468,8 +475,8 @@ const RadioField = (props: RadioFieldProps) => {
     styles.radioStatus,
     ...(fillOnCheck && isChecked ? [styles.filledRadioStatus] : []),
     ...(fillOnCheck && isChecked
-      ? [{backgroundColor: primaryColor, borderColor: primaryColor}]
-      : [{borderColor: primaryColor}]),
+      ? [{ backgroundColor: primaryColor, borderColor: primaryColor }]
+      : [{ borderColor: primaryColor }]),
     ...(propsCheckboxStyle ? [propsCheckboxStyle] : []),
   ];
 
@@ -484,7 +491,7 @@ const RadioField = (props: RadioFieldProps) => {
   ];
 
   const handleOnPress = () => {
-    if (typeof onSelect === 'function') {
+    if (typeof onSelect === "function") {
       onSelect(name, value);
     }
     changeFormValues(name, type, value);
@@ -518,8 +525,8 @@ const RadioField = (props: RadioFieldProps) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}>
       <Animated.View style={contentContainerStyle}>
-        {typeof renderItem === 'function' ? (
-          renderItem({isChecked, label, value})
+        {typeof renderItem === "function" ? (
+          renderItem({ isChecked, label, value })
         ) : (
           <React.Fragment>
             <View style={checkStatusStyle}>
@@ -534,9 +541,9 @@ const RadioField = (props: RadioFieldProps) => {
 };
 
 export const Field = (
-  props: TextFieldProps | CheckboxFieldProps | RadioFieldProps,
+  props: TextFieldProps | CheckboxFieldProps | RadioFieldProps
 ) => {
-  const {type} = props;
+  const { type } = props;
   switch (type) {
     case fieldTypes.text:
     case fieldTypes.textBox:
@@ -555,10 +562,10 @@ export const Field = (
 const initalizeFormValues = (initialValues?: Record<string, unknown>) => {
   if (
     initialValues &&
-    typeof initialValues === 'object' &&
+    typeof initialValues === "object" &&
     initialValues.constructor === Object
   ) {
-    return {...initialValues};
+    return { ...initialValues };
   }
   return {};
 };
@@ -571,13 +578,15 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
     submitting,
     onRender,
     primaryColor = formColors.gray,
-    ...rest
+    submitError,
+    extra = {},
   } = props;
   const initalFormValues = initalizeFormValues(initalValues);
   const [formValues, setFormValues] = useState(initalFormValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [active, setActive] = useState<string | undefined>(undefined);
   const [errors, setErrors] = useState<Record<string, unknown>>({});
+  const [prinstine, setPrinstine] = useState<boolean>(false);
 
   const invalid = !!(errors && Object.keys(errors).length > 0);
 
@@ -589,47 +598,48 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
       | number
       | Record<string, unknown>
       | Record<string, unknown>[]
-      | undefined,
+      | undefined
   ) => {
     if (isArrayTypeValue(type)) {
       if (value) {
-        setFormValues(formValues => {
+        setFormValues((formValues) => {
           const arrayValue = pushValueToNestedObject(
             name,
             formValues,
             value,
-            shouldRemoveValueIfExist(type),
+            shouldRemoveValueIfExist(type)
           );
-          return {...formValues, ...arrayValue};
+          return { ...formValues, ...arrayValue };
         });
       }
     } else {
       const finalValue = setNestedObjectValue(
         name,
-        value as string | number | Record<string, unknown> | undefined,
+        value as string | number | Record<string, unknown> | undefined
       );
-      setFormValues(formValues => ({...formValues, ...finalValue}));
+      setFormValues((formValues) => ({ ...formValues, ...finalValue }));
     }
+    setPrinstine(true);
   };
 
   const addFieldToTouched = (name: string) => {
-    if (name && typeof name === 'string') {
-      setTouched(touched => ({...touched, [name]: true}));
+    if (name && typeof name === "string") {
+      setTouched((touched) => ({ ...touched, [name]: true }));
     }
   };
 
   const updateActiveField = (name: string, isFocused = true) => {
-    if (name && typeof name === 'string') {
-      setActive(active =>
-        isFocused ? name : active === name ? undefined : active,
+    if (name && typeof name === "string") {
+      setActive((active) =>
+        isFocused ? name : active === name ? undefined : active
       );
     }
   };
 
   const addFieldError = (name: string, err: string | undefined | null) => {
-    if (name && typeof name === 'string') {
-      setErrors(errors => {
-        const newErrors = {...errors};
+    if (name && typeof name === "string") {
+      setErrors((errors) => {
+        const newErrors = { ...errors };
         delete newErrors[name];
         if (err) {
           newErrors[name] = err;
@@ -639,10 +649,15 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
     }
   };
 
-  const handleFormSubmit = (event: GestureResponderEvent) => {
+  const handleFormSubmit = async (event: GestureResponderEvent) => {
     if (submitting) return;
-    if (typeof onSubmit === 'function') {
-      onSubmit(formValues);
+    if (typeof onSubmit === "function") {
+      try {
+        await onSubmit(formValues);
+        setPrinstine(false);
+      } catch (err) {
+        setPrinstine(true);
+      }
     }
   };
 
@@ -662,7 +677,7 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
           updateActiveField,
           addFieldError,
         }}>
-        {typeof onRender === 'function'
+        {typeof onRender === "function"
           ? onRender({
               values: formValues,
               invalid,
@@ -673,7 +688,9 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
               initialValues: initalFormValues,
               changeFormValues,
               onSubmit: handleFormSubmit,
-              ...rest,
+              submitError: submitError,
+              extra,
+              prinstine,
             })
           : null}
       </FormContextProvider>
@@ -683,7 +700,7 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
 
 const styles = StyleSheet.create({
   form: {},
-  textMainContainer: {paddingBottom: 12, paddingTop: 12, overflow: 'hidden'},
+  textMainContainer: { paddingBottom: 12, paddingTop: 12, overflow: "hidden" },
   disabledTextMainContainer: {
     opacity: 0.5,
   },
@@ -706,18 +723,18 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   textLabel: {
-    position: 'absolute',
+    position: "absolute",
     fontSize: MAX_FONT_SIZE,
     lineHeight: 24,
     top: 0,
     left: 0,
     color: formColors.gray,
-    transformOrigin: 'left top',
-    overflow: 'hidden',
-    width: '100%',
+    transformOrigin: "left top",
+    overflow: "hidden",
+    width: "100%",
   },
   focusedTextLabel: {
-    width: '133%',
+    width: "133%",
   },
   errTextLabel: {
     color: formColors.failColor,
@@ -729,7 +746,7 @@ const styles = StyleSheet.create({
   },
   textBoxInput: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     maxHeight: 80,
   },
   passwordInput: {
@@ -754,7 +771,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   checkboxContentContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   checkboxLabel: {
     color: formColors.black,
@@ -763,8 +780,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: formColors.gray,
     padding: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     width: 20,
     height: 20,
     borderRadius: 2,
@@ -782,7 +799,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   radioContentContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   radioLabel: {
     color: formColors.black,
@@ -791,8 +808,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: formColors.gray,
     padding: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     width: 20,
     height: 20,
     borderRadius: 50,
