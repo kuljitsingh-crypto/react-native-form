@@ -142,7 +142,7 @@ The `ReactNativeForm` component accepts the following props:
 | Prop | Type | Description |
 | --- | --- | --- |
 | `name` | `string` | Required. The unique identifier for the field. |
-| `type` | `'text'`, `'textBox'`, `'number'`, `'password'` | Required. The type of the text field. |
+| `type` | `'text'`, `'textBox'`, `'number'`, `'password'`,`'email'` | Required. The type of the text field. |
 | `label` | `string` | Optional. The label to be displayed for the field. |
 | `placeholder` | `string` | Optional. The placeholder text for the field. |
 | `mainContainerStyle` | `Record<string, unknown>` | Optional. Additional styles for the main container view. |

@@ -202,6 +202,8 @@ const TextField = (props: TextFieldProps) => {
     ...(type === "textBox" ? { multiline: true } : {}),
     ...(type === "number"
       ? ({ keyboardType: "numeric" } as const)
+      : type === "email"
+      ? ({ keyboardType: "email-address" } as const)
       : ({ keyboardType: "default" } as const)),
     ...(type === "password"
       ? { secureTextEntry: shouldShowPwdToggleOption ? !showPwd : true }
@@ -549,6 +551,7 @@ export const Field = (
     case fieldTypes.textBox:
     case fieldTypes.number:
     case fieldTypes.password:
+    case fieldTypes.email:
       return <TextField {...props} />;
     case fieldTypes.checkbox:
       return <CheckboxField {...props} />;

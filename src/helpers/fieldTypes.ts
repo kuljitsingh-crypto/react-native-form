@@ -1,16 +1,17 @@
 export const textFieldTypes = {
-  text: 'text',
-  textBox: 'textBox',
-  number: 'number',
-  password: 'password',
+  text: "text",
+  textBox: "textBox",
+  number: "number",
+  password: "password",
+  email: "email",
 } as const;
 
 export const fieldTypes = {
   ...textFieldTypes,
-  checkbox: 'checkbox',
-  radio: 'radio',
-  singleSelect: 'singleSelect',
-  multiSelect: 'multiSelect',
+  checkbox: "checkbox",
+  radio: "radio",
+  singleSelect: "singleSelect",
+  multiSelect: "multiSelect",
 } as const;
 
 export type TextFieldProps = {
@@ -25,7 +26,7 @@ export type TextFieldProps = {
   shouldUseScaleAnimation?: boolean;
   disabled?: boolean;
   enableTogglePasswordOption?: boolean;
-  togglePasswordType?: 'classic' | 'modern';
+  togglePasswordType?: "classic" | "modern";
   fillOnCheck?: boolean;
   formatValue?: <T>(value: T) => T;
   onChange?: (name: string, value: string | number | undefined) => void;
@@ -36,7 +37,7 @@ export type TextFieldProps = {
 
 export type CheckboxFieldProps = {
   name: string;
-  type: 'checkbox';
+  type: "checkbox";
   label: string;
   value: string | number;
   required?: boolean;
@@ -56,7 +57,7 @@ export type CheckboxFieldProps = {
 
 export type RadioFieldProps = {
   name: string;
-  type: 'radio';
+  type: "radio";
   label: string;
   value: string | number;
   required?: boolean;
@@ -75,18 +76,18 @@ export type RadioFieldProps = {
 };
 
 export type FieldCheckboxGroupProps = {
-  renderChildrenAs?: 'column' | 'row';
-  options: {value: string | number; label: string}[];
-} & Omit<CheckboxFieldProps, 'value' | 'label' | 'type'>;
+  renderChildrenAs?: "column" | "row";
+  options: { value: string | number; label: string }[];
+} & Omit<CheckboxFieldProps, "value" | "label" | "type">;
 
 export type FieldRadioGroupProps = {
-  renderChildrenAs?: 'column' | 'row';
-  options: {value: string | number; label: string}[];
-} & Omit<RadioFieldProps, 'value' | 'label' | 'type'>;
+  renderChildrenAs?: "column" | "row";
+  options: { value: string | number; label: string }[];
+} & Omit<RadioFieldProps, "value" | "label" | "type">;
 
 export type FieldSelectProps = {
   name: string;
-  options: {value: string | number; label: string}[];
+  options: { value: string | number; label: string }[];
   placeholder?: string;
   required?: boolean;
   label?: string;
@@ -106,8 +107,8 @@ export type FieldSelectProps = {
   }) => React.JSX.Element;
   renderValue?: (
     values:
-      | {value: string | number; label: string}[]
-      | {value: string | number; label: string},
+      | { value: string | number; label: string }[]
+      | { value: string | number; label: string }
   ) => React.JSX.Element;
 };
 
