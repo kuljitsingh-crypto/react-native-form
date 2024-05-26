@@ -1,3 +1,5 @@
+import { TextInputProps } from "react-native";
+
 export const textFieldTypes = {
   text: "text",
   textBox: "textBox",
@@ -14,7 +16,16 @@ export const fieldTypes = {
   multiSelect: "multiSelect",
 } as const;
 
-export type TextFieldProps = {
+export type TextFieldProps = Omit<
+  TextInputProps,
+  | "label"
+  | "placeholder"
+  | "disabled"
+  | "placeholder"
+  | "onChange"
+  | "onFocus"
+  | "onBlur"
+> & {
   name: string;
   type: (typeof textFieldTypes)[keyof typeof textFieldTypes];
   label?: string;

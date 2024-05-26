@@ -96,6 +96,7 @@ const TextField = (props: TextFieldProps) => {
     onBlur: propsOnBlur,
     validate,
     formatValue,
+    placeholderTextColor,
   } = props;
   const formProps = useFormContext();
   const {
@@ -240,7 +241,14 @@ const TextField = (props: TextFieldProps) => {
     ...(isLabelAnimationEnabled ? [scaleStyle] : []),
   ];
 
-  const placeholderMaybe = label ? {} : placeholder ? { placeholder } : {};
+  const placeholderMaybe = label
+    ? {}
+    : placeholder
+    ? {
+        placeholder,
+        placeholderTextColor: placeholderTextColor || formColors.matterColor,
+      }
+    : {};
 
   useEffect(() => {
     validateUserValue(value);
