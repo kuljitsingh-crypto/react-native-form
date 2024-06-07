@@ -36,11 +36,12 @@ import { useScaleAnimation } from "./helpers/scaleAnimHook";
 
 const NUMBER_REGEX = /^([0-9]*|[0-9]+\.{0,1}[0-9]{0,})$/;
 const MAX_FONT_SIZE = 16;
-
-type ReactNativeFormTypes = {
+type ExtraType = Record<string, any>;
+type ReactNativeFormTypes<TExtra extends ExtraType = ExtraType> = {
   initalValues?: Record<string, unknown>;
   formStyle?: Record<string, unknown>;
   submitting?: boolean;
+  submitStatus?: string;
   submitError?: Record<string, any> | null;
   primaryColor?: string;
   onSubmit: (value: Record<string, unknown>) => void | Promise<void>;
@@ -52,6 +53,7 @@ type ReactNativeFormTypes = {
     initialValues: Record<string, unknown>;
     touched: Record<string, boolean>;
     errors: Record<string, unknown>;
+    submitStatus?: string;
     changeFormValues: (
       name: string,
       type: string,
@@ -59,10 +61,10 @@ type ReactNativeFormTypes = {
     ) => void;
     onSubmit: (event: GestureResponderEvent) => void;
     submitError?: Record<string, any> | null;
-    extra: Record<string, any>;
+    extra: TExtra;
     prinstine: boolean;
   }) => React.JSX.Element;
-  extra?: Record<string, any>;
+  extra: TExtra;
 };
 
 const CheckSvg = (props: { width: number; height: number; fill: string }) => {
@@ -581,7 +583,9 @@ const initalizeFormValues = (initialValues?: Record<string, unknown>) => {
   return {};
 };
 
-export const ReactNativeForm = (props: ReactNativeFormTypes) => {
+export const ReactNativeForm = <TExtra extends ExtraType = ExtraType>(
+  props: ReactNativeFormTypes<TExtra>
+) => {
   const {
     initalValues,
     onSubmit,
@@ -590,7 +594,8 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
     onRender,
     primaryColor = formColors.gray,
     submitError,
-    extra = {},
+    submitStatus,
+    extra = {} as TExtra,
   } = props;
   const initalFormValues = initalizeFormValues(initalValues);
   const [formValues, setFormValues] = useState(initalFormValues);
@@ -700,6 +705,7 @@ export const ReactNativeForm = (props: ReactNativeFormTypes) => {
               changeFormValues,
               onSubmit: handleFormSubmit,
               submitError: submitError,
+              submitStatus,
               extra,
               prinstine,
             })
