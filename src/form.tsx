@@ -64,7 +64,7 @@ type ReactNativeFormTypes<TExtra extends ExtraType = ExtraType> = {
     extra: TExtra;
     prinstine: boolean;
   }) => React.JSX.Element;
-  extra: TExtra;
+  extra?: TExtra;
 };
 
 const CheckSvg = (props: { width: number; height: number; fill: string }) => {
